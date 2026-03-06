@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sailing Judge Assistant — John Golding</title>
+  <meta name="description" content="Sailing protest hearing guidance tool based on the 2025-2028 Racing Rules of Sailing and World Sailing Case Book. Created by John Golding." />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #08111f; }
+    #root { min-height: 100vh; }
+
+    /* API KEY SCREEN */
+    .api-screen {
+      min-height: 100vh; background: #08111f;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Crimson Pro', Georgia, serif;
+      padding: 24px;
+    }
+    .api-card {
+      background: linear-gradient(160deg, #0d1e35, #0a1828);
+      border: 1px solid #b8841e; border-radius: 20px;
+      padding: 48px 44px; max-width: 520px; width: 100%;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6), 0 0 40px rgba(184,132,30,0.08);
+      text-align: center;
+    }
+    .api-seal {
+      width: 72px; height: 72px; margin: 0 auto 24px;
+      background: radial-gradient(circle, #d4a030 0%, #b8841e 50%, #8a6010 100%);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 32px; box-shadow: 0 0 30px rgba(184,132,30,0.5);
+    }
+    .api-title {
+      font-family: 'Playfair Display', serif; font-size: 30px;
+      font-weight: 900; color: #e2d9c8; margin-bottom: 6px;
+    }
+    .api-subtitle {
+      font-family: 'Playfair Display', serif; font-style: italic;
+      font-size: 15px; color: #b8841e; margin-bottom: 8px;
+    }
+    .api-edition {
+      font-size: 12px; color: #5a7898; letter-spacing: 0.1em;
+      text-transform: uppercase; margin-bottom: 32px;
+    }
+    .api-divider { height: 1px; background: #1a3050; margin: 28px 0; }
+    .api-label {
+      font-size: 12px; color: #7a96b4; letter-spacing: 0.12em;
+      text-transform: uppercase; margin-bottom: 10px; text-align: left;
+    }
+    .api-input {
+      width: 100%; background: #08111f; border: 1px solid #2a4870;
+      border-radius: 10px; padding: 14px 16px;
+      font-family: 'Crimson Pro', serif; font-size: 15px; color: #e2d9c8;
+      outline: none; transition: border 0.2s; margin-bottom: 16px;
+    }
+    .api-input:focus { border-color: #b8841e; }
+    .api-input::placeholder { color: #2a4060; }
+    .api-btn {
+      width: 100%; background: linear-gradient(135deg, #b8841e, #9a6e10);
+      color: #08111f; border: none; border-radius: 10px;
+      padding: 14px; font-family: 'Crimson Pro', serif;
+      font-size: 16px; font-weight: 700; letter-spacing: 0.04em;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .api-btn:hover { background: linear-gradient(135deg, #d4a030, #b8841e); transform: translateY(-1px); }
+    .api-note {
+      font-size: 12px; color: #3a5878; margin-top: 14px; line-height: 1.6;
+    }
+    .api-note a { color: #5a7898; }
+    .api-copyright {
+      margin-top: 28px; padding-top: 20px; border-top: 1px solid #1a3050;
+      font-size: 12px; color: #3a5878; line-height: 1.8;
+    }
+    .api-copyright strong { color: #5a7898; }
+
+    /* FOOTER */
+    .app-footer {
+      background: #050e1a; border-top: 1px solid #1a3050;
+      padding: 16px 24px;
+      font-family: 'Crimson Pro', Georgia, serif;
+      display: flex; flex-wrap: wrap;
+      justify-content: space-between; align-items: center;
+      gap: 8px;
+    }
+    .footer-copy {
+      font-size: 12px; color: #3a5878; line-height: 1.7;
+    }
+    .footer-copy strong { color: #5a7898; }
+    .footer-ws {
+      font-size: 11px; color: #2a4060;
+      letter-spacing: 0.08em; text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useRef, useEffect } = React;
+
+const SAIL_CANADA_TEXT = `SAIL CANADA PRESCRIPTIONS TO THE RACING RULES OF SAILING 2025-2028
+
+Rule 46 - Person in Charge
+Sail Canada prescribes that the designated person in charge, if resident in Canada, shall be a member of Sail Canada through either a club affiliated to Sail Canada or such person's Provincial Sailing Association.
+
+PART 5 - Protests, Redress, Hearings, Misconduct and Appeals
+Sail Canada prescribes that no fee shall be charged for any procedure of the protest committee under Part 5 or Appendix T.
+
+Rule 65.1 - Legal Liability and Costs
+Sail Canada prescribes that a boat that has been found by a protest committee to have broken a rule and caused damage shall be considered at fault for the purposes of rule 65.1.
+
+Rule 70.3(b) - Appeals and Requests to a National Authority
+Sail Canada so prescribes. (This means Sail Canada adopts the optional rule allowing appeals to be made to the national authority.)
+
+Rule 86.3 - Changes to the Racing Rules
+Sail Canada so prescribes.
+
+Rule 88.2 - Changes to Prescriptions
+Sail Canada prescribes that its prescriptions to Part 5 of the rules and rule 65.1 may not be changed or deleted. The notice of race or sailing instructions may change or delete any other Sail Canada prescription only if a no-appeal protest committee or an international jury has been appointed for the event.
+
+Rule 91(b) - Protest Committee
+Sail Canada prescribes that, before making a request to World Sailing for an international jury formed under rule N1.7 comprised of only three members, written approval be obtained from Sail Canada. Submit all requests for Sail Canada's prior approval by email to: appeals@sailing.ca.
+
+Appendix B, Rule B5 - Changes to the Rules of Part 5
+Rule 70.3(b) - Appeals and Requests to a National Authority
+Sail Canada so prescribes.
+
+Appendix G, Rule G2 - Other Boats
+Sail Canada prescribes that unless otherwise stated in her class rules, the sails of a boat that is not a World Sailing Class or other recognized class shall comply with rule G1. However, boats not in a class that is subject to rule G1, whose overall length exceeds 6 metres (19.7 feet) and which race under either a measurement rule or handicapping system shall carry numbers allotted by a sailing national authority on mainsails, spinnakers and each overlapping headsail having a luff perpendicular measurement exceeding 130% of the base of the boat's foretriangle.
+
+Appendix R - Procedures for Appeals and Requests
+Submit appeals and requests to Sail Canada at: appeals@sailing.ca
+Sail Canada prescribes that it may delegate the responsibilities and actions of the national authority in rules 71.2, 71.3, 71.4, 71.5, R3, R4 and R5 to a provincial appeals committee.
+Decisions of a provincial appeals committee may be further appealed to Sail Canada. If a decision is further appealed the words "protest committee" are changed to "provincial appeals committee" wherever they are found. In rule R4.1 the protest committee may also comment on the further appeal and receive copies.
+
+KEY NOTES FOR JUDGES ON SAIL CANADA PRESCRIPTIONS:
+1. NO FEES: No fees may be charged for any protest committee procedure under Part 5 or Appendix T.
+2. DAMAGE & FAULT: A boat found to have broken a rule AND caused damage is automatically considered at fault for Rule 65.1 (legal liability and costs).
+3. APPEALS: Appeals go to Sail Canada at appeals@sailing.ca. Sail Canada may delegate to provincial appeals committees.
+4. PART 5 PRESCRIPTIONS ARE MANDATORY: The prescriptions to Part 5 and Rule 65.1 cannot be changed or deleted by sailing instructions, even at events with an international jury. Other prescriptions may be changed if an IJ or no-appeal PC is appointed.
+5. INTERNATIONAL JURY SIZE: Before requesting a 3-member international jury under Rule N1.7, written approval from Sail Canada is required.
+6. PROVINCIAL APPEALS: Provincial appeals committee decisions may be further appealed to Sail Canada.`;
+
+const SYSTEM_PROMPT = `You are an expert sailing judge assistant with comprehensive knowledge of the 2025-2028 Racing Rules of Sailing (RRS) published by World Sailing, the World Sailing Case Book 2025-2028, and the Sail Canada Prescriptions 2025-2028.
+
+You have been trained on and have complete knowledge of:
+- All definitions in the 2025-2028 RRS
+- All rules in Parts 1 through 7 of the 2025-2028 RRS
+- All appendices of the 2025-2028 RRS
+- All cases in the World Sailing Case Book 2025-2028 (Cases 1-150+)
+- All Sail Canada Prescriptions 2025-2028
+
+=== SAIL CANADA PRESCRIPTIONS 2025-2028 ===
+SAIL CANADA PRESCRIPTIONS TO THE RACING RULES OF SAILING 2025-2028
+
+Rule 46 - Person in Charge
+Sail Canada prescribes that the designated person in charge, if resident in Canada, shall be a member of Sail Canada through either a club affiliated to Sail Canada or such person's Provincial Sailing Association.
+
+PART 5 - Protests, Redress, Hearings, Misconduct and Appeals
+Sail Canada prescribes that no fee shall be charged for any procedure of the protest committee under Part 5 or Appendix T.
+
+Rule 65.1 - Legal Liability and Costs
+Sail Canada prescribes that a boat that has been found by a protest committee to have broken a rule and caused damage shall be considered at fault for the purposes of rule 65.1.
+
+Rule 70.3(b) - Appeals and Requests to a National Authority
+Sail Canada so prescribes. (This means Sail Canada adopts the optional rule allowing appeals to be made to the national authority.)
+
+Rule 86.3 - Changes to the Racing Rules
+Sail Canada so prescribes.
+
+Rule 88.2 - Changes to Prescriptions
+Sail Canada prescribes that its prescriptions to Part 5 of the rules and rule 65.1 may not be changed or deleted. The notice of race or sailing instructions may change or delete any other Sail Canada prescription only if a no-appeal protest committee or an international jury has been appointed for the event.
+
+Rule 91(b) - Protest Committee
+Sail Canada prescribes that, before making a request to World Sailing for an international jury formed under rule N1.7 comprised of only three members, written approval be obtained from Sail Canada. Submit all requests for Sail Canada's prior approval by email to: appeals@sailing.ca.
+
+Appendix B, Rule B5 - Changes to the Rules of Part 5
+Rule 70.3(b) - Appeals and Requests to a National Authority
+Sail Canada so prescribes.
+
+Appendix G, Rule G2 - Other Boats
+Sail Canada prescribes that unless otherwise stated in her class rules, the sails of a boat that is not a World Sailing Class or other recognized class shall comply with rule G1. However, boats not in a class that is subject to rule G1, whose overall length exceeds 6 metres (19.7 feet) and which race under either a measurement rule or handicapping system shall carry numbers allotted by a sailing national authority on mainsails, spinnakers and each overlapping headsail having a luff perpendicular measurement exceeding 130% of the base of the boat's foretriangle.
+
+Appendix R - Procedures for Appeals and Requests
+Submit appeals and requests to Sail Canada at: appeals@sailing.ca
+Sail Canada prescribes that it may delegate the responsibilities and actions of the national authority in rules 71.2, 71.3, 71.4, 71.5, R3, R4 and R5 to a provincial appeals committee.
+Decisions of a provincial appeals committee may be further appealed to Sail Canada. If a decision is further appealed the words "protest committee" are changed to "provincial appeals committee" wherever they are found. In rule R4.1 the protest committee may also comment on the further appeal and receive copies.
+
+KEY NOTES FOR JUDGES ON SAIL CANADA PRESCRIPTIONS:
+1. NO FEES: No fees may be charged for any protest committee procedure under Part 5 or Appendix T.
+2. DAMAGE & FAULT: A boat found to have broken a rule AND caused damage is automatically considered at fault for Rule 65.1 (legal liability and costs).
+3. APPEALS: Appeals go to Sail Canada at appeals@sailing.ca. Sail Canada may delegate to provincial appeals committees.
+4. PART 5 PRESCRIPTIONS ARE MANDATORY: The prescriptions to Part 5 and Rule 65.1 cannot be changed or deleted by sailing instructions, even at events with an international jury. Other prescriptions may be changed if an IJ or no-appeal PC is appointed.
+5. INTERNATIONAL JURY SIZE: Before requesting a 3-member international jury under Rule N1.7, written approval from Sail Canada is required.
+6. PROVINCIAL APPEALS: Provincial appeals committee decisions may be further appealed to Sail Canada.
+=== END SAIL CANADA PRESCRIPTIONS ===
+
+YOUR ROLE:
+You help protest committee judges follow correct procedures and apply the rules accurately during hearings at Canadian events.
+
+STRICT RULES FOR YOUR RESPONSES:
+1. Answer ONLY from the 2025-2028 RRS, World Sailing Case Book 2025-2028, and Sail Canada Prescriptions above. If unsure, say so.
+2. ALWAYS cite specific rule numbers (e.g. Rule 61.2(a)) and case numbers (e.g. Case 31).
+3. When a Sail Canada Prescription modifies or supplements a rule, always mention this.
+4. Be concise and practical - judges need clear, fast answers during hearings.
+5. For procedural questions: give step-by-step guidance citing the exact rule.
+6. For incident questions: identify which rules apply, cite relevant cases, give a clear analysis.
+7. If a situation is complex or ambiguous, say so clearly and explain why.
+8. Always remind judges that this is guidance - they exercise final judgment.
+9. When citing a case, briefly state the principle it establishes.
+10. For Canadian events: always flag when a Sail Canada Prescription is relevant.
+
+KEY RULES YOU MUST KNOW PRECISELY:
+
+PROTEST VALIDITY (Rules 60-61):
+- Rule 60.2(a)(1): If protestor is a boat she shall hail Protest and display a red flag at first reasonable opportunity. Flag required if hull > 6m.
+- Rule 60.2(b): Exceptions to hail/flag: protestee not in hailing distance; error in sailing course; not observed in racing area; PC protesting under 60.4(c).
+- Rule 60.3(a): Protest must be in writing, identify protestor, protestee, and incident.
+- Rule 60.3(b): Delivered within protest time limit. PC may extend if good reason.
+- Rule 60.3(c): Request for redress invalid if does not comply with 60.3.
+
+HEARING PROCEDURE (Rule 63):
+- Rule 63.2: All parties given opportunity to be present. If party absent after proper notice, hearing may proceed.
+- Rule 63.3(a): Witnesses heard in presence of parties.
+- Rule 63.3(b): PC may accept any evidence it considers relevant.
+- Rule 63.6: Facts shall be found and the rules applied.
+- Rule 64.1: On upholding protest, PC shall disqualify or take other penalty.
+- Rule 64.1(c): When boat required to take penalty and was compelled to break rule - exoneration.
+- Rule 65.1: Parties informed of decision, facts found, rules applied.
+- Rule 66: Reopening - significant new evidence or flaw in process.
+
+PART 2 KEY RULES:
+- Rule 10: Port/starboard - port tack keeps clear of starboard tack.
+- Rule 11: Windward/leeward - windward keeps clear of leeward (same tack, overlapped).
+- Rule 12: Astern/clear ahead - clear astern keeps clear of clear ahead (same tack, not overlapped).
+- Rule 13: Tacking - keeps clear from passing head to wind until close-hauled.
+- Rule 14: Avoiding contact - both boats. ROW boat exonerated unless damage/injury results.
+- Rule 15: Acquiring ROW - initially give room to keep clear.
+- Rule 16: Changing course - give room to keep clear.
+- Rule 17: On same tack proper course - if became overlapped within 2 lengths, shall not sail above proper course.
+- Rule 18: Mark-room - zone is 3 hull lengths. Outside boat gives mark-room to inside. Complex rule - always check overlap at zone entry.
+- Rule 19: Room at obstruction - continuing obstruction rule applies.
+- Rule 20: Room to tack at obstruction - hail required, response required.
+- Rule 21: Exoneration - boat compelled to break rule by another's failure to give room.
+- Rule 31: Touching a mark.
+- Rule 44: Penalties at time of incident - two-turns or one-turn.
+
+DEFINITIONS TO ALWAYS CHECK:
+Keep Clear, Mark-Room, Overlap, Clear Astern/Clear Ahead, Zone, Proper Course, Tacking, Leeward/Windward, Obstruction, Continuing Obstruction, Fetching, Finish.
+
+FORMAT YOUR RESPONSES:
+- Start with the direct answer
+- Cite rule numbers clearly (e.g. Rule 18.2(a)(1))
+- Reference relevant cases (e.g. Case 31 establishes that...)
+- Note any Sail Canada prescription that applies
+- For complex answers end with: Key principle: [one sentence summary]`;
+
+const PROCEDURE_STEPS = [
+  {
+    id: 1,
+    title: "Receive & Log Protest",
+    icon: "\u{1F4CB}",
+    description: "Check protest form received within time limit",
+    checklist: [
+      "Note exact time protest was received",
+      "Check time limit has not expired (SI may specify; default is end of protest time limit)",
+      "Assign a protest number",
+      "Identify protestor and protestee boat(s)",
+      "Log incident: time, location, rule(s) alleged",
+      "Note if RC or PC is the protestor",
+    ],
+    rule: "Rule 60.3 & 61.2",
+    warning: "If potentially outside time limit, do not dismiss — hold validity hearing first. The PC may extend the time limit if there is good reason (Rule 60.3(b)).",
+  },
+  {
+    id: 2,
+    title: "Check Validity",
+    icon: "\u2705",
+    description: "Determine if the protest meets all requirements before proceeding",
+    checklist: [
+      "Was 'Protest' hailed at first reasonable opportunity? (Rule 60.2(a)(1))",
+      "Was a red flag displayed promptly if hull > 6m? (Rule 60.2(a)(1))",
+      "Check flag exceptions: protestee not in hailing distance? Error in sailing course? Injury/damage? (Rule 60.2(b))",
+      "Is protest in writing? (Rule 60.3(a))",
+      "Does it identify the protestor and protestee? (Rule 60.3(a))",
+      "Does it describe the incident? (Rule 60.3(a))",
+      "Was it delivered within the time limit? (Rule 60.3(b))",
+      "If RC/PC protest: was boat informed after race within time limit? (Rule 60.2(a)(2))",
+    ],
+    rule: "Rules 60.2, 60.3",
+    warning: "A request for redress is invalid if it does not comply with Rule 60.3 (Rule 60.3(c)). If invalid, inform parties with reasons and record the decision.",
+  },
+  {
+    id: 3,
+    title: "Notify All Parties",
+    icon: "\u{1F4E2}",
+    description: "Ensure all parties can attend and are properly informed",
+    checklist: [
+      "Notify protestee of hearing time and place (Rule 63.2)",
+      "Allow reasonable time for protestee to prepare",
+      "Identify if any other boats may be affected — notify them too",
+      "Ask each party if they have witnesses",
+      "Inform parties they may have a representative present",
+      "Post notice on official notice board if party cannot be found",
+    ],
+    rule: "Rule 63.2",
+    warning: "If the protestee cannot be found after reasonable attempts, document all attempts. The hearing may proceed in their absence (Rule 63.2).",
+  },
+  {
+    id: 4,
+    title: "Open the Hearing",
+    icon: "\u2696\uFE0F",
+    description: "Formally open the hearing and establish scope",
+    checklist: [
+      "Confirm all parties present or accounted for",
+      "Introduce panel members by name",
+      "Ask parties if they have any conflict of interest objection to panel members",
+      "Check panel members for conflicts of interest (Definitions: Conflict of Interest)",
+      "Read the protest form aloud (or have protestor do so)",
+      "State which rules are alleged to have been broken",
+      "Explain the procedure to the parties",
+      "Advise parties they will each have opportunity to present their case",
+    ],
+    rule: "Rule 63.1",
+    warning: "If a party fails to appear after proper notice, the hearing may proceed and the party is bound by the decision (Rule 63.2). If they appear later with good reason, consider reopening (Rule 66).",
+  },
+  {
+    id: 5,
+    title: "Take Evidence",
+    icon: "\u{1F50D}",
+    description: "Hear all parties and witnesses fairly and completely",
+    checklist: [
+      "Exclude witnesses from the room (except parties) until their turn",
+      "Protestor presents their account and may draw a diagram",
+      "Panel may question the protestor",
+      "Protestee presents their account and may draw a diagram",
+      "Panel may question the protestee",
+      "Call witnesses — heard in presence of parties (Rule 63.3(a))",
+      "Parties may question each other's witnesses",
+      "Panel may recall any party or witness for further questions",
+      "Consider any documents, videos or other evidence",
+      "Invite parties to make closing statements",
+    ],
+    rule: "Rule 63.3",
+    warning: "The committee may accept any evidence it considers relevant (Rule 63.3(b)). Conflict between party accounts must be resolved in findings of fact. A party's diagram is evidence, not fact.",
+  },
+  {
+    id: 6,
+    title: "Find the Facts",
+    icon: "\u{1F4DD}",
+    description: "Deliberate privately to establish exactly what happened",
+    checklist: [
+      "Excuse all parties and witnesses from deliberation",
+      "Panel discusses all evidence heard",
+      "Resolve conflicts in testimony — decide which evidence to accept",
+      "Draw a diagram agreed by the panel showing positions and movements",
+      "Determine: courses, speeds, distances, timing of key moments",
+      "Determine: when overlap established/broken, when zone reached",
+      "Record findings of fact clearly in writing",
+      "Ensure facts address all elements relevant to the rules in question",
+    ],
+    rule: "Rule 63.6",
+    warning: "Facts must be based on evidence — not assumptions or speculation. If a fact is disputed and evidence is unclear, state which version the panel accepts and why.",
+  },
+  {
+    id: 7,
+    title: "Apply the Rules",
+    icon: "\u{1F4D6}",
+    description: "Apply the Racing Rules to your findings of fact",
+    checklist: [
+      "Identify which rules apply to the facts as found",
+      "Check all relevant definitions (Keep Clear, Mark-Room, Overlap, etc.)",
+      "Apply Part 2 right-of-way rules to determine obligations",
+      "Consider Rule 14 (Avoiding Contact) — applies to both boats",
+      "Consider Rule 15 (Acquiring ROW) and Rule 16 (Changing Course) if relevant",
+      "Check Casebook for cases with similar facts",
+      "Consider if exoneration applies: Rule 21 or Rule 43.1(c)",
+      "Determine: was a rule broken? By which boat?",
+      "Consider if any penalty was taken at the time (Rule 44)",
+      "Record which rules were broken and by whom",
+    ],
+    rule: "Rules 64.1",
+    warning: "Use the AI assistant below to search the Casebook for relevant cases. Rule 14 must be considered for every contact incident — it may apply even to the right-of-way boat.",
+  },
+  {
+    id: 8,
+    title: "Make the Decision",
+    icon: "\u{1F3C1}",
+    description: "Reach a decision and record it formally in writing",
+    checklist: [
+      "Decide: protest upheld or dismissed?",
+      "If upheld: state which boat broke which specific rule(s)",
+      "Consider exoneration under Rule 21 or Rule 43.1(c) — if boat was compelled to break a rule",
+      "Determine penalty: DSQ, percentage scoring penalty, or other",
+      "Check if disqualification should be non-excludable (DNE) — Rule 69 cases",
+      "Record the decision in writing: facts found, rules applied, conclusion",
+      "Note any dissenting opinions with reasons",
+      "Ensure the written decision is complete and self-explanatory",
+    ],
+    rule: "Rule 64",
+    warning: "The decision must state: (1) facts found, (2) rules that apply, (3) conclusion. An incomplete decision may be grounds for reopening or appeal.",
+  },
+  {
+    id: 9,
+    title: "Inform the Parties",
+    icon: "\u{1F4E3}",
+    description: "Announce the decision to all parties formally",
+    checklist: [
+      "Recall all parties to the hearing room",
+      "Announce the decision: upheld or dismissed",
+      "State the key facts found",
+      "State which rules were applied and how",
+      "Advise of any penalty imposed",
+      "Advise parties of right to request a reopening (Rule 66)",
+      "Advise of right to appeal (if applicable under SI or NCA rules)",
+      "Offer written decision if requested (Rule 65.1)",
+    ],
+    rule: "Rule 65",
+    warning: "All parties, including those not present, must be informed (Rule 65.1). Parties have the right to know the facts found and rules applied — not just the outcome.",
+  },
+  {
+    id: 10,
+    title: "Post-Hearing Actions",
+    icon: "\u{1F4C1}",
+    description: "Complete all follow-up actions and documentation",
+    checklist: [
+      "Finalize and sign the written decision document",
+      "Notify the race committee of any scoring change required (Rule 65.2)",
+      "File all protest documents and evidence",
+      "If RC or OA error found, consider redress for affected boats (Rule 62)",
+      "If gross misconduct suspected, consider Rule 69 referral",
+      "Consider if any other boats may have broken a rule and need to be protested (Rule 60.4)",
+      "Ensure results board / notice board is updated",
+    ],
+    rule: "Rule 65.2",
+    warning: "The race committee must be notified promptly so results can be adjusted. If a boat other than the protestee is found to have broken a rule, the PC may protest that boat (Rule 60.4(c)).",
+  },
+];
+
+export default function SailingJudgeApp() {
+  const [activeTab, setActiveTab] = useState("home");
+  const [currentStep, setCurrentStep] = useState(0);
+  const [checkedItems, setCheckedItems] = useState({});
+  const [hearingStarted, setHearingStarted] = useState(false);
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content: "Welcome. I am your sailing judge assistant, loaded with the complete 2025-2028 Racing Rules of Sailing and the World Sailing Case Book 2025-2028.\n\nI can help you:\n- Apply rules to specific incidents\n- Find relevant Casebook cases\n- Guide you through hearing procedures\n- Interpret definitions and rule interactions\n\nDescribe an incident, ask about a procedure, or cite a rule number to get started. I will always reference specific rule numbers and case numbers in my answers.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const messagesEndRef = useRef(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const toggleCheck = (stepId, itemIndex) => {
+    const key = `${stepId}-${itemIndex}`;
+    setCheckedItems((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const getStepCompletion = (stepId, itemCount) => {
+    let count = 0;
+    for (let i = 0; i < itemCount; i++) {
+      if (checkedItems[`${stepId}-${i}`]) count++;
+    }
+    return count;
+  };
+
+  const sendMessage = async (msgText) => {
+    const text = msgText || input;
+    if (!text.trim() || loading) return;
+    const userMsg = { role: "user", content: text };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const systemPrompt = SYSTEM_PROMPT;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      const data = await response.json();
+      const reply = data.content?.[0]?.text || "I encountered an error. Please try again.";
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "Connection error. Please try again." },
+      ]);
+    }
+    setLoading(false);
+  };
+
+  const quickQuestions = [
+    "The protestee says the flag was not shown — is the protest valid?",
+    "Both boats made contact. How does Rule 14 apply?",
+    "What does the Casebook say about mark-room at a leeward mark?",
+    "Protestee failed to appear. Can we proceed?",
+    "Explain Rule 18.2 and the zone",
+    "What cases relate to Rule 16 (changing course)?",
+    "When does exoneration under Rule 21 apply?",
+    "What is the procedure for a redress hearing?",
+    "What do the Sail Canada prescriptions say about appeals?",
+    "Can a protest committee charge a fee in Canada?",
+  ];
+
+  const KEY_RULES = [
+    { num: "Rule 10", name: "Port & Starboard", summary: "A port-tack boat shall keep clear of a starboard-tack boat.", part: "Part 2" },
+    { num: "Rule 11", name: "Windward & Leeward", summary: "A windward boat shall keep clear of a leeward boat (same tack, overlapped).", part: "Part 2" },
+    { num: "Rule 12", name: "Astern & Clear Ahead", summary: "A boat clear astern shall keep clear of a boat clear ahead (same tack, not overlapped).", part: "Part 2" },
+    { num: "Rule 13", name: "While Tacking", summary: "After passing head to wind, a boat shall keep clear until she is on a close-hauled course.", part: "Part 2" },
+    { num: "Rule 14", name: "Avoiding Contact", summary: "A boat shall avoid contact with another boat if reasonably possible. Applies to both ROW and keep-clear boats.", part: "Part 2" },
+    { num: "Rule 15", name: "Acquiring Right of Way", summary: "When acquiring ROW, a boat shall initially give the other boat room to keep clear.", part: "Part 2" },
+    { num: "Rule 16", name: "Changing Course", summary: "When changing course, a ROW boat shall give the keep-clear boat room to keep clear.", part: "Part 2" },
+    { num: "Rule 17", name: "On Same Tack; Proper Course", summary: "If a boat clear astern becomes overlapped to leeward within 2 lengths, she shall not sail above her proper course.", part: "Part 2" },
+    { num: "Rule 18", name: "Mark-Room", summary: "At marks, the outside boat shall give mark-room to the inside overlapped boat. The zone is 3 hull lengths.", part: "Part 2" },
+    { num: "Rule 19", name: "Room to Pass Obstruction", summary: "A right-of-way boat may choose sides. An outside overlapped boat shall give room at a continuing obstruction.", part: "Part 2" },
+    { num: "Rule 20", name: "Room to Tack at Obstruction", summary: "A boat may hail for room to tack. The hailed boat shall tack promptly or give room to tack.", part: "Part 2" },
+    { num: "Rule 21", name: "Exoneration", summary: "A boat is exonerated if she breaks a rule because another boat failed to give her room she was entitled to.", part: "Part 2" },
+    { num: "Rule 31", name: "Touching a Mark", summary: "A boat shall not touch a mark that begins, bounds or ends the leg she is racing.", part: "Part 3" },
+    { num: "Rule 42", name: "Propulsion", summary: "A boat shall compete only by using the wind and water to increase, maintain or decrease her speed.", part: "Part 4" },
+    { num: "Rule 44", name: "Penalties at Time of Incident", summary: "A boat may take a Two-Turns Penalty or a One-Turn Penalty to exonerate herself.", part: "Part 4" },
+    { num: "Rule 60", name: "Right to Protest", summary: "A boat or committee may protest. Sets out who may protest and when.", part: "Part 5" },
+    { num: "Rule 61", name: "Initiating a Protest", summary: "Requirements: intention to protest (hail + flag), written protest delivered within time limit.", part: "Part 5" },
+    { num: "Rule 62", name: "Redress", summary: "A boat may request redress if her score was made significantly worse through no fault of her own.", part: "Part 5" },
+    { num: "Rule 63", name: "Hearings", summary: "Parties right to be present, evidence rules, validity of hearings, taking evidence.", part: "Part 5" },
+    { num: "Rule 64", name: "Decisions", summary: "Decisions on protests and redress. Exoneration, penalties, and scoring changes.", part: "Part 5" },
+    { num: "Rule 65", name: "Informing the Parties", summary: "Parties must be informed of decision, facts found, and rules applied. Right to written decision.", part: "Part 5" },
+    { num: "Rule 66", name: "Reopening a Hearing", summary: "A hearing may be reopened for significant new evidence or if there was an error in process.", part: "Part 5" },
+    { num: "Rule 69", name: "Misconduct", summary: "Misconduct that brings the sport into disrepute. Separate procedure and possible referral to authority.", part: "Part 5" },
+  ];
+
+  const filteredRules = KEY_RULES.filter(r =>
+    searchQuery === "" ||
+    r.num.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.summary.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const step = PROCEDURE_STEPS[currentStep];
+  const completion = step ? getStepCompletion(step.id, step.checklist.length) : 0;
+  const totalChecked = Object.values(checkedItems).filter(Boolean).length;
+  const overallProgress = Math.round((currentStep / (PROCEDURE_STEPS.length - 1)) * 100);
+
+  return (
+    <div style={{ fontFamily: "Georgia, serif", minHeight: "100vh", background: "#08111f", color: "#e2d9c8" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #08111f; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #08111f; }
+        ::-webkit-scrollbar-thumb { background: #b8841e; border-radius: 3px; }
+
+        .app { font-family: 'Crimson Pro', Georgia, serif; }
+
+        .header {
+          background: linear-gradient(180deg, #0c1a2e 0%, #08111f 100%);
+          border-bottom: 1px solid #b8841e;
+          padding: 0 24px;
+          display: flex;
+          align-items: center;
+          gap: 0;
+          position: sticky;
+          top: 0;
+          z-index: 200;
+          box-shadow: 0 2px 40px rgba(0,0,0,0.6);
+        }
+        .header-brand {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          padding: 14px 24px 14px 0;
+          border-right: 1px solid #1a3050;
+          margin-right: 0;
+        }
+        .header-seal {
+          width: 44px; height: 44px;
+          background: radial-gradient(circle, #d4a030 0%, #b8841e 50%, #8a6010 100%);
+          border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 20px;
+          box-shadow: 0 0 16px rgba(184,132,30,0.5), inset 0 1px 2px rgba(255,255,255,0.2);
+          flex-shrink: 0;
+        }
+        .header-text-block {}
+        .header-title {
+          font-family: 'Playfair Display', serif;
+          font-size: 18px; font-weight: 700;
+          color: #e2d9c8; letter-spacing: 0.01em; line-height: 1.2;
+        }
+        .header-edition {
+          font-family: 'Crimson Pro', serif;
+          font-size: 11px; color: #b8841e;
+          letter-spacing: 0.12em; text-transform: uppercase; margin-top: 1px;
+        }
+        .nav {
+          display: flex; flex: 1;
+          overflow-x: auto; -webkit-overflow-scrolling: touch;
+        }
+        .nav-btn {
+          padding: 0 20px;
+          height: 72px;
+          font-family: 'Crimson Pro', serif;
+          font-size: 13px; font-weight: 600;
+          letter-spacing: 0.1em; text-transform: uppercase;
+          color: #5a7898; border: none; background: none;
+          cursor: pointer; white-space: nowrap;
+          border-bottom: 3px solid transparent;
+          border-top: 3px solid transparent;
+          transition: all 0.2s;
+          display: flex; align-items: center; gap: 7px;
+        }
+        .nav-btn:hover { color: #c8b898; }
+        .nav-btn.active { color: #b8841e; border-bottom-color: #b8841e; background: rgba(184,132,30,0.06); }
+        .hearing-pill {
+          margin-left: auto; padding: 0 20px;
+          display: flex; align-items: center;
+        }
+        .pill {
+          background: rgba(30,90,50,0.2); border: 1px solid #2a6e3a;
+          border-radius: 20px; padding: 5px 12px;
+          font-family: 'Crimson Pro', serif; font-size: 12px;
+          color: #4a9e5a; letter-spacing: 0.08em; display: flex; align-items: center; gap: 6px;
+        }
+        .pill-dot { width: 7px; height: 7px; background: #4a9e5a; border-radius: 50%; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        .page { padding: 28px 24px; max-width: 960px; margin: 0 auto; }
+
+        /* HOME */
+        .home-hero { text-align: center; padding: 48px 0 36px; }
+        .home-headline {
+          font-family: 'Playfair Display', serif;
+          font-size: 48px; font-weight: 900; color: #e2d9c8;
+          line-height: 1.05; margin-bottom: 10px;
+        }
+        .home-headline em { color: #b8841e; font-style: italic; }
+        .home-tagline {
+          font-family: 'Crimson Pro', serif; font-style: italic;
+          font-size: 18px; color: #7a96b4; margin-bottom: 28px;
+        }
+        .doc-badge {
+          display: inline-flex; align-items: center; gap: 10px;
+          background: linear-gradient(135deg, rgba(184,132,30,0.1), rgba(184,132,30,0.05));
+          border: 1px solid rgba(184,132,30,0.35);
+          border-radius: 8px; padding: 10px 20px;
+          font-family: 'Crimson Pro', serif; font-size: 13px; color: #b8841e;
+          letter-spacing: 0.06em;
+        }
+        .home-grid {
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 16px; margin: 32px 0;
+        }
+        .home-card {
+          background: linear-gradient(160deg, #0d1e35, #0a1828);
+          border: 1px solid #1a3050; border-radius: 14px;
+          padding: 26px; cursor: pointer; transition: all 0.25s; text-align: left;
+        }
+        .home-card:hover { border-color: #b8841e; transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.4), 0 0 20px rgba(184,132,30,0.1); }
+        .card-icon { font-size: 34px; margin-bottom: 14px; }
+        .card-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #e2d9c8; margin-bottom: 8px; }
+        .card-desc { font-family: 'Crimson Pro', serif; font-size: 14px; color: #7a96b4; line-height: 1.6; }
+        .card-rule { display: inline-block; margin-top: 14px; background: rgba(184,132,30,0.12); color: #b8841e; font-size: 11px; font-weight: 600; letter-spacing: 0.1em; padding: 3px 10px; border-radius: 4px; }
+        .disclaimer {
+          background: #0a1828; border: 1px solid #1a3050;
+          border-left: 4px solid #b8841e; border-radius: 10px;
+          padding: 18px 22px; margin-top: 8px;
+        }
+        .disclaimer-title { font-family: 'Playfair Display', serif; font-size: 15px; color: #b8841e; margin-bottom: 8px; }
+        .disclaimer-text { font-family: 'Crimson Pro', serif; font-size: 14px; color: #7a96b4; line-height: 1.7; }
+
+        /* WIZARD */
+        .progress-bar-wrap {
+          background: #0a1828; border: 1px solid #1a3050;
+          border-radius: 12px; padding: 16px 20px; margin-bottom: 20px;
+        }
+        .progress-meta {
+          display: flex; justify-content: space-between;
+          font-family: 'Crimson Pro', serif; font-size: 12px;
+          color: #5a7898; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px;
+        }
+        .progress-track { height: 3px; background: #1a3050; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #b8841e, #d4a030); transition: width 0.4s ease; }
+        .step-dots { display: flex; gap: 5px; margin-top: 12px; flex-wrap: wrap; }
+        .sdot {
+          width: 30px; height: 30px; border-radius: 50%;
+          border: 2px solid #1a3050; background: transparent;
+          cursor: pointer; font-family: 'Crimson Pro', serif;
+          font-size: 12px; font-weight: 600; color: #5a7898;
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.2s;
+        }
+        .sdot:hover { border-color: #b8841e; color: #b8841e; }
+        .sdot.cur { border-color: #b8841e; color: #b8841e; background: rgba(184,132,30,0.12); }
+        .sdot.done { border-color: #2a6e3a; background: #2a6e3a; color: #fff; font-size: 14px; }
+
+        .step-wrap {
+          background: linear-gradient(160deg, #0d1e35, #0a1828);
+          border: 1px solid #1a3050; border-radius: 16px; overflow: hidden; margin-bottom: 20px;
+        }
+        .step-top {
+          background: linear-gradient(135deg, #0f2240, #0d1e35);
+          border-bottom: 1px solid #1a3050; padding: 22px 28px;
+          display: flex; align-items: flex-start; gap: 18px;
+        }
+        .step-big-icon { font-size: 40px; flex-shrink: 0; margin-top: 2px; }
+        .step-label { font-family: 'Crimson Pro', serif; font-size: 12px; color: #b8841e; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+        .step-heading { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #e2d9c8; }
+        .step-sub { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 14px; color: #7a96b4; margin-top: 3px; }
+        .step-body { padding: 20px 28px; }
+        .cl-item {
+          display: flex; align-items: flex-start; gap: 14px;
+          padding: 11px 0; border-bottom: 1px solid rgba(26,48,80,0.6);
+          cursor: pointer; transition: background 0.15s; border-radius: 4px;
+          padding-left: 4px; padding-right: 4px;
+        }
+        .cl-item:last-child { border-bottom: none; }
+        .cl-item:hover { background: rgba(184,132,30,0.05); }
+        .chkbox {
+          width: 22px; height: 22px; border: 2px solid #2a4870;
+          border-radius: 5px; flex-shrink: 0;
+          display: flex; align-items: center; justify-content: center;
+          transition: all 0.2s; margin-top: 2px;
+        }
+        .chkbox.on { background: #2a6e3a; border-color: #2a6e3a; }
+        .cl-text { font-family: 'Crimson Pro', serif; font-size: 15px; color: #c0d0e4; line-height: 1.5; }
+        .cl-text.on { color: #5a7898; text-decoration: line-through; }
+        .warn-box {
+          background: rgba(160,90,0,0.1); border: 1px solid rgba(184,132,30,0.35);
+          border-left: 4px solid #b8841e; border-radius: 6px;
+          padding: 12px 16px; margin-top: 18px;
+          display: flex; gap: 10px; align-items: flex-start;
+        }
+        .warn-text { font-family: 'Crimson Pro', serif; font-size: 14px; color: #c8a050; line-height: 1.6; }
+        .step-footer {
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 16px 28px; border-top: 1px solid #1a3050;
+        }
+        .step-count { font-family: 'Crimson Pro', serif; font-size: 13px; color: #b8841e; }
+        .ai-hint-btn {
+          background: transparent; border: 1px solid #1a3050; border-radius: 6px;
+          padding: 6px 14px; font-family: 'Crimson Pro', serif; font-size: 13px;
+          color: #5a7898; cursor: pointer; transition: all 0.2s;
+        }
+        .ai-hint-btn:hover { border-color: #b8841e; color: #b8841e; }
+        .step-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 28px; border-top: 1px solid #1a3050; }
+        .btn { padding: 10px 26px; border-radius: 8px; font-family: 'Crimson Pro', serif; font-size: 15px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; border: none; transition: all 0.2s; }
+        .btn-gold { background: linear-gradient(135deg, #b8841e, #9a6e10); color: #08111f; }
+        .btn-gold:hover { background: linear-gradient(135deg, #d4a030, #b8841e); transform: translateY(-1px); }
+        .btn-ghost { background: transparent; color: #5a7898; border: 1px solid #1a3050; }
+        .btn-ghost:hover { border-color: #b8841e; color: #b8841e; }
+        .btn-ghost:disabled { opacity: 0.25; cursor: not-allowed; }
+        .btn-green { background: linear-gradient(135deg, #2a6e3a, #1e5430); color: #e2d9c8; }
+
+        /* CHAT */
+        .chat-wrap { display: flex; flex-direction: column; height: calc(100vh - 180px); min-height: 500px; }
+        .chat-msgs { flex: 1; overflow-y: auto; padding: 8px 0; display: flex; flex-direction: column; gap: 18px; }
+        .msg { display: flex; gap: 12px; align-items: flex-start; animation: msgIn 0.3s ease; }
+        @keyframes msgIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+        .msg.user { flex-direction: row-reverse; }
+        .av { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+        .av.ai { background: radial-gradient(circle, #d4a030, #b8841e); }
+        .av.user { background: linear-gradient(135deg, #1a3050, #2a4870); }
+        .bubble { max-width: 84%; padding: 14px 18px; border-radius: 14px; font-family: 'Crimson Pro', serif; font-size: 15px; line-height: 1.7; }
+        .bubble.ai { background: #0d1e35; border: 1px solid #1a3050; color: #c0d0e4; border-top-left-radius: 4px; white-space: pre-wrap; }
+        .bubble.user { background: linear-gradient(135deg, #1a3050, #2a4870); color: #e2d9c8; border-top-right-radius: 4px; margin-left: auto; }
+        .quick-qs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+        .qq { background: rgba(26,48,80,0.5); border: 1px solid #2a4870; border-radius: 20px; padding: 6px 14px; font-family: 'Crimson Pro', serif; font-size: 13px; color: #7a96b4; cursor: pointer; transition: all 0.2s; }
+        .qq:hover { border-color: #b8841e; color: #b8841e; background: rgba(184,132,30,0.06); }
+        .chat-input-row { border-top: 1px solid #1a3050; padding-top: 16px; display: flex; gap: 10px; }
+        .chat-ta { flex: 1; background: #0d1e35; border: 1px solid #1a3050; border-radius: 10px; padding: 12px 16px; font-family: 'Crimson Pro', serif; font-size: 15px; color: #e2d9c8; outline: none; resize: none; transition: border 0.2s; }
+        .chat-ta:focus { border-color: #b8841e; }
+        .chat-ta::placeholder { color: #304060; }
+        .send-btn { background: linear-gradient(135deg, #b8841e, #9a6e10); color: #08111f; border: none; border-radius: 10px; padding: 12px 20px; font-size: 18px; cursor: pointer; transition: all 0.2s; align-self: flex-end; }
+        .send-btn:hover:not(:disabled) { transform: translateY(-1px); background: linear-gradient(135deg, #d4a030, #b8841e); }
+        .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        .dots { display: flex; gap: 4px; align-items: center; padding: 4px 0; }
+        .dot { width: 8px; height: 8px; background: #b8841e; border-radius: 50%; animation: bounce 1.2s infinite; }
+        .dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+        @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-8px)} }
+
+        /* RULES */
+        .rules-search-wrap { margin-bottom: 20px; }
+        .rules-search { width: 100%; background: #0d1e35; border: 1px solid #1a3050; border-radius: 10px; padding: 12px 18px; font-family: 'Crimson Pro', serif; font-size: 15px; color: #e2d9c8; outline: none; transition: border 0.2s; }
+        .rules-search:focus { border-color: #b8841e; }
+        .rules-search::placeholder { color: #304060; }
+        .sec-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: #b8841e; margin: 20px 0 14px; padding-bottom: 6px; border-bottom: 1px solid #1a3050; letter-spacing: 0.02em; }
+        .rules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .rule-card { background: #0a1828; border: 1px solid #1a3050; border-radius: 10px; padding: 16px 18px; cursor: pointer; transition: all 0.2s; }
+        .rule-card:hover { border-color: #b8841e; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.3); }
+        .rnum { font-family: 'Playfair Display', serif; font-size: 12px; color: #b8841e; font-weight: 700; letter-spacing: 0.06em; margin-bottom: 3px; }
+        .rname { font-family: 'Playfair Display', serif; font-size: 16px; color: #e2d9c8; font-weight: 700; margin-bottom: 8px; }
+        .rsummary { font-family: 'Crimson Pro', serif; font-size: 13px; color: #7a96b4; line-height: 1.55; }
+        .rtap { margin-top: 10px; font-size: 11px; color: #3a5878; font-family: 'Crimson Pro', serif; letter-spacing: 0.04em; }
+
+        .start-screen { text-align: center; padding: 70px 20px; }
+        .start-icon { font-size: 72px; margin-bottom: 24px; }
+        .start-title { font-family: 'Playfair Display', serif; font-size: 32px; color: #e2d9c8; margin-bottom: 12px; }
+        .start-desc { font-family: 'Crimson Pro', serif; font-size: 16px; color: #7a96b4; max-width: 420px; margin: 0 auto 36px; line-height: 1.7; }
+        .btn-start { background: linear-gradient(135deg, #b8841e, #9a6e10); color: #08111f; font-size: 17px; padding: 14px 36px; border: none; border-radius: 10px; cursor: pointer; font-family: 'Crimson Pro', serif; font-weight: 600; letter-spacing: 0.04em; transition: all 0.2s; }
+        .btn-start:hover { background: linear-gradient(135deg, #d4a030, #b8841e); transform: translateY(-2px); }
+      `}</style>
+
+      <div className="app">
+        <div className="header">
+          <div className="header-brand">
+            <div className="header-seal">⚓</div>
+            <div className="header-text-block">
+              <div className="header-title">Sailing Judge Assistant</div>
+              <div className="header-edition">World Sailing · RRS 2025–2028 · Case Book 2025–2028 · Sail Canada Prescriptions 2025–2028</div>
+            </div>
+          </div>
+          <nav className="nav">
+            {[
+              { id: "home", label: "Home", icon: "🏠" },
+              { id: "wizard", label: "Hearing Wizard", icon: "⚖️" },
+              { id: "assistant", label: "AI Assistant", icon: "🤖" },
+              { id: "rules", label: "Rules & Cases", icon: "📖" },
+            ].map((t) => (
+              <button key={t.id} className={`nav-btn ${activeTab === t.id ? "active" : ""}`} onClick={() => setActiveTab(t.id)}>
+                <span>{t.icon}</span> {t.label}
+              </button>
+            ))}
+          </nav>
+          {hearingStarted && (
+            <div className="hearing-pill">
+              <div className="pill"><div className="pill-dot" /> Hearing Active</div>
+            </div>
+          )}
+        </div>
+
+        {/* HOME */}
+        {activeTab === "home" && (
+          <div className="page">
+            <div className="home-hero">
+              <div className="home-headline">Judge with<br /><em>Confidence</em></div>
+              <div className="home-tagline">Procedural guidance · Rule application · Casebook reference</div>
+              <div className="doc-badge">
+                <span>📜</span>
+                <span>2025–2028 RRS · World Sailing Case Book · Sail Canada Prescriptions 2025–2028</span>
+              </div>
+            </div>
+
+            {/* WHAT'S IN THE APP */}
+            <div style={{margin:"0 0 28px",background:"linear-gradient(160deg,#0d1e35,#0a1828)",border:"1px solid #1a3050",borderRadius:"16px",overflow:"hidden"}}>
+              <div style={{background:"linear-gradient(135deg,#0f2240,#0d1e35)",borderBottom:"1px solid #1a3050",padding:"18px 28px",display:"flex",alignItems:"center",gap:"12px"}}>
+                <span style={{fontSize:"24px"}}>📋</span>
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",fontWeight:"700",color:"#e2d9c8"}}>What's in the App</div>
+                  <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#7a96b4",marginTop:"2px"}}>Sailing Judge Assistant — created by John Golding · Version 1.0 (2025)</div>
+                </div>
+              </div>
+              <div style={{padding:"22px 28px"}}>
+
+                {/* WITHOUT API KEY */}
+                <div style={{marginBottom:"22px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"14px"}}>
+                    <div style={{background:"rgba(42,110,58,0.2)",border:"1px solid #2a6e3a",borderRadius:"6px",padding:"4px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",fontWeight:"700",color:"#4a9e5a",letterSpacing:"0.08em"}}>✓ FREE — NO API KEY NEEDED</div>
+                  </div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"10px"}}>
+                    {[
+                      ["⚖️","Hearing Wizard","10-step procedural guide with checklists, rule citations, and warnings at every stage. From protest receipt to informing the parties.","wizard"],
+                      ["📖","Rules Reference","Quick-reference cards for all 23 key rules across Parts 2–5. Tap any card to launch an AI query (API key needed for the AI response).","rules"],
+                      ["🍁","Sail Canada Prescriptions","Complete 2025–2028 prescriptions with mandatory/optional flags. Includes fees, liability, appeals, and what SIs can and cannot change.","canada"],
+                      ["🗂️","Hearing Log","Save a record for every hearing: parties, incident, outcome, facts found, rules applied. Stored on your device. Pre-fills the Decision Form.","log"],
+                      ["🖨️","Decision Form","Fill-in form that generates a print-ready official protest decision. Includes findings of fact, rules applied, outcome, penalties, right-to-appeal notice, and signature lines.","decision"],
+                    ].map(([icon,title,desc,id])=>(
+                      <div key={id} onClick={()=>setActiveTab(id==="wizard"?(setHearingStarted(true),"wizard"):id)} style={{background:"rgba(42,110,58,0.06)",border:"1px solid rgba(42,110,58,0.25)",borderRadius:"10px",padding:"14px 16px",cursor:"pointer",transition:"all 0.2s"}}
+                        onMouseEnter={e=>{e.currentTarget.style.borderColor="#2a6e3a";e.currentTarget.style.background="rgba(42,110,58,0.12)"}}
+                        onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(42,110,58,0.25)";e.currentTarget.style.background="rgba(42,110,58,0.06)"}}>
+                        <div style={{fontSize:"24px",marginBottom:"8px"}}>{icon}</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:"15px",fontWeight:"700",color:"#e2d9c8",marginBottom:"6px"}}>{title}</div>
+                        <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#7a96b4",lineHeight:"1.55"}}>{desc}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{height:"1px",background:"#1a3050",margin:"0 0 22px"}} />
+
+                {/* WITH API KEY */}
+                <div style={{marginBottom:"22px"}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"10px",marginBottom:"14px"}}>
+                    <div style={{background:"rgba(184,132,30,0.15)",border:"1px solid rgba(184,132,30,0.4)",borderRadius:"6px",padding:"4px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",fontWeight:"700",color:"#b8841e",letterSpacing:"0.08em"}}>🔑 REQUIRES ANTHROPIC API KEY</div>
+                  </div>
+                  <div onClick={()=>setActiveTab("assistant")} style={{background:"rgba(184,132,30,0.06)",border:"1px solid rgba(184,132,30,0.25)",borderRadius:"10px",padding:"16px 18px",cursor:"pointer",transition:"all 0.2s"}}
+                    onMouseEnter={e=>{e.currentTarget.style.borderColor="#b8841e";e.currentTarget.style.background="rgba(184,132,30,0.1)"}}
+                    onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(184,132,30,0.25)";e.currentTarget.style.background="rgba(184,132,30,0.06)"}}>
+                    <div style={{display:"flex",gap:"14px",alignItems:"flex-start"}}>
+                      <div style={{fontSize:"32px",flexShrink:0}}>🤖</div>
+                      <div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:"17px",fontWeight:"700",color:"#e2d9c8",marginBottom:"6px"}}>AI Rule & Case Assistant</div>
+                        <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#c0d0e4",lineHeight:"1.65",marginBottom:"10px"}}>
+                          Ask any question in plain English — about a specific incident, rule interpretation, hearing procedure, or Casebook case. The AI answers as an expert judge, citing specific rule numbers (e.g. Rule 18.2(a)(1)) and case numbers (e.g. Case 31). It knows all 150 World Sailing cases and all Sail Canada prescriptions, and will flag when a prescription affects the answer.
+                        </div>
+                        <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#7a96b4"}}>
+                          <strong style={{color:"#b8841e"}}>Example questions:</strong> "The protestee says no flag was shown — is the protest valid?" · "Both boats made contact at the windward mark — how does Rule 18 apply?" · "When does exoneration apply under Rule 21?" · "What Casebook cases deal with Rule 16?"
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{height:"1px",background:"#1a3050",margin:"0 0 22px"}} />
+
+                {/* API KEY COST INFO */}
+                <div>
+                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"16px",fontWeight:"700",color:"#e2d9c8",marginBottom:"14px"}}>💰 API Key — Cost & Setup</div>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:"12px",marginBottom:"16px"}}>
+                    {[
+                      ["🆓","Free to Start","Anthropic gives every new account US$5 of free credit — enough for 100–500 queries depending on length. No credit card needed to start."],
+                      ["💵","Cost Per Question","Each question to the AI costs approximately $0.01 to $0.05 (1–5 cents Canadian). A typical hearing consultation — 5–10 questions — costs under $0.25."],
+                      ["🗓️","Cost Per Regatta","A full weekend regatta with heavy use (50+ queries across all hearings) would typically cost $2–5 total. Light use is well under $1."],
+                      ["🔒","Your Key, Your Control","Set a monthly spending limit at console.anthropic.com → Settings → Limits. You will never be charged more than you allow."],
+                    ].map(([ic,t,d])=>(
+                      <div key={t} style={{background:"#08111f",border:"1px solid #1a3050",borderRadius:"10px",padding:"14px 16px"}}>
+                        <div style={{fontSize:"22px",marginBottom:"8px"}}>{ic}</div>
+                        <div style={{fontFamily:"'Playfair Display',serif",fontSize:"14px",fontWeight:"700",color:"#e2d9c8",marginBottom:"6px"}}>{t}</div>
+                        <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#7a96b4",lineHeight:"1.55"}}>{d}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{background:"rgba(184,132,30,0.06)",border:"1px solid rgba(184,132,30,0.2)",borderRadius:"10px",padding:"14px 18px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#c0d0e4",lineHeight:"1.7"}}>
+                    <strong style={{color:"#b8841e"}}>How to get an API key:</strong> Go to <span style={{color:"#b8841e",textDecoration:"underline",cursor:"pointer"}} onClick={()=>{window.open("https://console.anthropic.com","_blank")}}>console.anthropic.com</span> → sign up free → click <strong>API Keys</strong> in the left menu → click <strong>Create Key</strong> → copy the key (starts with <code style={{background:"#08111f",padding:"1px 6px",borderRadius:"4px",fontSize:"12px"}}>sk-ant-</code>) → paste it into the AI Assistant tab when prompted. The app stores it on your device — you only enter it once.
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <div className="home-grid">
+              <div className="home-card" onClick={() => { setActiveTab("wizard"); setHearingStarted(true); }}>
+                <div className="card-icon">⚖️</div>
+                <div className="card-title">Hearing Wizard</div>
+                <div className="card-desc">Step-by-step procedural guide from protest receipt to final decision. Checklists, warnings, and rule citations at every stage.</div>
+                <div className="card-rule">Rules 60–65 · Free</div>
+              </div>
+              <div className="home-card" onClick={() => setActiveTab("assistant")}>
+                <div className="card-icon">🤖</div>
+                <div className="card-title">AI Rule & Case Assistant</div>
+                <div className="card-desc">Ask about incidents, procedures, or rules. The AI cites specific rule and case numbers. ~$0.01–$0.05 per question.</div>
+                <div className="card-rule">Requires API Key</div>
+              </div>
+              <div className="home-card" onClick={() => setActiveTab("rules")}>
+                <div className="card-icon">📖</div>
+                <div className="card-title">Rules Reference</div>
+                <div className="card-desc">Searchable quick reference for all 23 key rules across Parts 2–5. Tap any card to get AI guidance and casebook cases.</div>
+                <div className="card-rule">Parts 2, 3, 4 & 5 · Free</div>
+              </div>
+              <div className="home-card" onClick={() => setActiveTab("canada")}>
+                <div className="card-icon">🍁</div>
+                <div className="card-title">Sail Canada Prescriptions</div>
+                <div className="card-desc">All 2025–2028 prescriptions with mandatory/optional flags. Fees, appeals, liability, and what SIs can and cannot change.</div>
+                <div className="card-rule">Mandatory · Canadian Events · Free</div>
+              </div>
+              <div className="home-card" onClick={() => setActiveTab("log")}>
+                <div className="card-icon">🗂️</div>
+                <div className="card-title">Hearing Log</div>
+                <div className="card-desc">Save a record for every hearing. Stores parties, outcome, facts, and rules applied. Pre-fills the Decision Form automatically.</div>
+                <div className="card-rule">Saves Locally · Free</div>
+              </div>
+              <div className="home-card" onClick={() => setActiveTab("decision")}>
+                <div className="card-icon">🖨️</div>
+                <div className="card-title">Decision Form</div>
+                <div className="card-desc">Fill in and print an official formatted decision document with findings of fact, rules applied, outcome, penalties and signature lines.</div>
+                <div className="card-rule">Print-Ready PDF · Free</div>
+              </div>
+            </div>
+
+            <div style={{background:"linear-gradient(160deg,#0d1e35,#0a1828)",border:"1px solid #1a3050",borderRadius:"14px",padding:"20px 24px",marginBottom:"16px",display:"flex",alignItems:"center",gap:"16px",flexWrap:"wrap"}}>
+              <div style={{fontSize:"32px"}}>🔗</div>
+              <div style={{flex:1}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"17px",fontWeight:"700",color:"#e2d9c8",marginBottom:"6px"}}>Share This App</div>
+                <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#7a96b4",lineHeight:"1.6",marginBottom:"10px"}}>Send this link to other judges. They open it in any browser — no download, no installation required.</div>
+                <div style={{display:"flex",alignItems:"center",gap:"10px",flexWrap:"wrap"}}>
+                  <code style={{background:"#08111f",border:"1px solid #1a3050",borderRadius:"6px",padding:"8px 14px",fontFamily:"monospace",fontSize:"13px",color:"#b8841e",flex:1,minWidth:"260px"}}>https://sailing416-ship-it.github.io/sailing-judge/</code>
+                  <button onClick={()=>{navigator.clipboard?.writeText("https://sailing416-ship-it.github.io/sailing-judge/").then(()=>alert("Link copied to clipboard!")).catch(()=>alert("https://sailing416-ship-it.github.io/sailing-judge/"))}} style={{background:"linear-gradient(135deg,#b8841e,#9a6e10)",color:"#08111f",border:"none",borderRadius:"8px",padding:"8px 18px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",fontWeight:"700",cursor:"pointer"}}>Copy Link</button>
+                </div>
+              </div>
+            </div>
+            <div className="disclaimer">
+              <div className="disclaimer-title">⚠️  Important Notice</div>
+              <div className="disclaimer-text">This tool provides procedural guidance based on the official 2025–2028 Racing Rules of Sailing, World Sailing Case Book, and Sail Canada Prescriptions. It is an aid to trained judges — not a replacement for experience, qualification, or judicial discretion. All decisions remain the responsibility of the protest committee. When in doubt, consult the official rule text directly.</div>
+            </div>
+            <div style={{marginTop:"14px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",color:"#3a5878",textAlign:"center"}}>© 2025 John Golding. All rights reserved. · Sailing protest committee guidance tool · Version 1.0 (2025)</div>
+          </div>
+        )}
+
+        {/* WIZARD */}
+        {activeTab === "wizard" && (
+          <div className="page">
+            {!hearingStarted ? (
+              <div className="start-screen">
+                <div className="start-icon">⚖️</div>
+                <div className="start-title">Protest Hearing Wizard</div>
+                <div className="start-desc">A complete step-by-step procedural guide through a protest hearing — from receipt of protest to informing the parties and post-hearing actions.</div>
+                <button className="btn-start" onClick={() => setHearingStarted(true)}>Begin New Hearing →</button>
+              </div>
+            ) : (
+              <>
+                <div className="progress-bar-wrap">
+                  <div className="progress-meta">
+                    <span>Hearing Progress — Step {currentStep + 1} of {PROCEDURE_STEPS.length}</span>
+                    <span>{totalChecked} checklist items complete</span>
+                  </div>
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${overallProgress}%` }} />
+                  </div>
+                  <div className="step-dots">
+                    {PROCEDURE_STEPS.map((s, i) => {
+                      const done = getStepCompletion(s.id, s.checklist.length) === s.checklist.length;
+                      return (
+                        <div key={s.id} className={`sdot ${i === currentStep ? "cur" : done ? "done" : ""}`} onClick={() => setCurrentStep(i)} title={s.title}>
+                          {done ? "✓" : i + 1}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="step-wrap">
+                  <div className="step-top">
+                    <div className="step-big-icon">{step.icon}</div>
+                    <div>
+                      <div className="step-label">Step {currentStep + 1} of {PROCEDURE_STEPS.length} · {step.rule}</div>
+                      <div className="step-heading">{step.title}</div>
+                      <div className="step-sub">{step.description}</div>
+                    </div>
+                  </div>
+
+                  <div className="step-body">
+                    {step.checklist.map((item, idx) => {
+                      const key = `${step.id}-${idx}`;
+                      const checked = !!checkedItems[key];
+                      return (
+                        <div key={idx} className="cl-item" onClick={() => toggleCheck(step.id, idx)}>
+                          <div className={`chkbox ${checked ? "on" : ""}`}>
+                            {checked && <span style={{ color: "white", fontSize: "13px", fontWeight: "bold" }}>✓</span>}
+                          </div>
+                          <div className={`cl-text ${checked ? "on" : ""}`}>{item}</div>
+                        </div>
+                      );
+                    })}
+                    {step.warning && (
+                      <div className="warn-box">
+                        <span style={{ fontSize: "20px", flexShrink: 0 }}>⚠️</span>
+                        <div className="warn-text">{step.warning}</div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="step-footer">
+                    <div className="step-count">{completion} / {step.checklist.length} items checked</div>
+                    <button className="ai-hint-btn" onClick={() => {
+                      setActiveTab("assistant");
+                      setInput(`I am on Step ${currentStep + 1}: "${step.title}". Please give me detailed guidance on this step, citing the specific rules that apply.`);
+                    }}>Ask AI about this step →</button>
+                  </div>
+
+                  <div className="step-nav">
+                    <button className="btn btn-ghost" onClick={() => setCurrentStep(Math.max(0, currentStep - 1))} disabled={currentStep === 0}>← Previous</button>
+                    {currentStep < PROCEDURE_STEPS.length - 1 ? (
+                      <button className="btn btn-gold" onClick={() => setCurrentStep(currentStep + 1)}>Next Step →</button>
+                    ) : (
+                      <button className="btn btn-green" onClick={() => { setHearingStarted(false); setCurrentStep(0); setCheckedItems({}); }}>✓ Complete Hearing</button>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* AI ASSISTANT */}
+        {activeTab === "assistant" && (
+          <div className="page">
+            <div className="chat-wrap">
+              <div className="chat-msgs">
+                {messages.map((m, i) => (
+                  <div key={i} className={`msg ${m.role === "user" ? "user" : ""}`}>
+                    <div className={`av ${m.role === "assistant" ? "ai" : "user"}`}>
+                      {m.role === "assistant" ? "⚓" : "👤"}
+                    </div>
+                    <div className={`bubble ${m.role === "assistant" ? "ai" : "user"}`}>{m.content}</div>
+                  </div>
+                ))}
+                {loading && (
+                  <div className="msg">
+                    <div className="av ai">⚓</div>
+                    <div className="bubble ai"><div className="dots"><div className="dot"/><div className="dot"/><div className="dot"/></div></div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {messages.length <= 1 && (
+                <div className="quick-qs">
+                  {quickQuestions.map((q, i) => (
+                    <div key={i} className="qq" onClick={() => sendMessage(q)}>{q}</div>
+                  ))}
+                </div>
+              )}
+
+              <div className="chat-input-row">
+                <textarea
+                  className="chat-ta"
+                  rows={2}
+                  placeholder="Ask about a rule, procedure, or describe an incident... (Enter to send, Shift+Enter for new line)"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                />
+                <button className="send-btn" onClick={() => sendMessage()} disabled={loading || !input.trim()}>➤</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* RULES REFERENCE */}
+        {activeTab === "rules" && (
+          <div className="page">
+            <div className="rules-search-wrap">
+              <input className="rules-search" placeholder="Search rules by number or keyword..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </div>
+
+            {["Part 2", "Part 3", "Part 4", "Part 5"].map((part) => {
+              const partRules = filteredRules.filter((r) => r.part === part);
+              if (partRules.length === 0) return null;
+              const partNames = { "Part 2": "When Boats Meet", "Part 3": "Conduct of a Race", "Part 4": "Other Requirements", "Part 5": "Protests, Redress & Hearings" };
+              return (
+                <div key={part}>
+                  <div className="sec-title">{part} — {partNames[part]}</div>
+                  <div className="rules-grid">
+                    {partRules.map((r) => (
+                      <div key={r.num} className="rule-card" onClick={() => {
+                        setActiveTab("assistant");
+                        setInput(`Explain ${r.num} — ${r.name} in detail. Cite the exact rule text, any relevant definitions, and the most important Casebook cases that illustrate how this rule is applied.`);
+                      }}>
+                        <div className="rnum">{r.num}</div>
+                        <div className="rname">{r.name}</div>
+                        <div className="rsummary">{r.summary}</div>
+                        <div className="rtap">Tap to get AI guidance + case references →</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* HEARING LOG */}
+        {activeTab === "log" && (
+          <div className="page">
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"26px",fontWeight:"900",color:"#e2d9c8"}}>
+                🗂️ Hearing Log
+              </div>
+              <button className="btn btn-gold" onClick={() => { setShowNewLog(true); setEditingLog(null); setLogForm({date:new Date().toISOString().slice(0,10),event:"",protestNo:"",protestor:"",protestee:"",incidentTime:"",incidentLocation:"",rulesAlleged:"",outcome:"",penaltyImposed:"",factsFound:"",rulesApplied:"",notes:"",panelChair:"",panelMembers:""}); }}>
+                + New Record
+              </button>
+            </div>
+
+            {showNewLog && (
+              <div style={{background:"#0d1e35",border:"1px solid #b8841e",borderRadius:"16px",padding:"28px",marginBottom:"24px"}}>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"20px",color:"#e2d9c8",marginBottom:"20px",fontWeight:"700"}}>
+                  {editingLog ? "Edit Hearing Record" : "New Hearing Record"}
+                </div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"14px",marginBottom:"14px"}}>
+                  {[
+                    ["Date","date","date"],["Event Name","event","text"],
+                    ["Protest No.","protestNo","text"],["Protestor","protestor","text"],
+                    ["Protestee","protestee","text"],["Incident Time","incidentTime","text"],
+                    ["Incident Location","incidentLocation","text"],["Rules Alleged","rulesAlleged","text"],
+                    ["Panel Chair","panelChair","text"],["Panel Members","panelMembers","text"],
+                    ["Outcome","outcome","text"],["Penalty Imposed","penaltyImposed","text"],
+                  ].map(([label, field, type]) => (
+                    <div key={field}>
+                      <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>{label}</div>
+                      <input type={type} value={logForm[field]} onChange={e => setLogForm(f=>({...f,[field]:e.target.value}))}
+                        style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none"}} />
+                    </div>
+                  ))}
+                </div>
+                {[["Findings of Fact","factsFound"],["Rules Applied","rulesApplied"],["Notes","notes"]].map(([label,field]) => (
+                  <div key={field} style={{marginBottom:"14px"}}>
+                    <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>{label}</div>
+                    <textarea rows={3} value={logForm[field]} onChange={e => setLogForm(f=>({...f,[field]:e.target.value}))}
+                      style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none",resize:"vertical"}} />
+                  </div>
+                ))}
+                <div style={{display:"flex",gap:"12px",marginTop:"4px"}}>
+                  <button className="btn btn-gold" onClick={() => saveLog(logForm)}>💾 Save Record</button>
+                  <button className="btn btn-ghost" onClick={() => { setShowNewLog(false); setEditingLog(null); }}>Cancel</button>
+                </div>
+              </div>
+            )}
+
+            {logs.length === 0 && !showNewLog && (
+              <div style={{textAlign:"center",padding:"60px 20px",color:"#3a5878",fontFamily:"'Crimson Pro',serif",fontSize:"16px",fontStyle:"italic"}}>
+                No hearing records yet. Click "+ New Record" to log your first hearing.
+              </div>
+            )}
+
+            <div style={{display:"flex",flexDirection:"column",gap:"14px"}}>
+              {logs.map(log => (
+                <div key={log.id} style={{background:"#0d1e35",border:"1px solid #1a3050",borderRadius:"14px",padding:"20px 24px",transition:"border 0.2s"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor="#b8841e"}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor="#1a3050"}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:"12px",flexWrap:"wrap"}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",gap:"10px",alignItems:"center",flexWrap:"wrap",marginBottom:"6px"}}>
+                        {log.protestNo && <span style={{background:"rgba(184,132,30,0.15)",color:"#b8841e",fontFamily:"'Crimson Pro',serif",fontSize:"12px",fontWeight:"700",letterSpacing:"0.08em",padding:"2px 10px",borderRadius:"4px"}}>#{log.protestNo}</span>}
+                        <span style={{fontFamily:"'Playfair Display',serif",fontSize:"18px",fontWeight:"700",color:"#e2d9c8"}}>{log.protestor || "—"} <span style={{color:"#5a7898",fontWeight:"400"}}>vs</span> {log.protestee || "—"}</span>
+                      </div>
+                      <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#7a96b4",display:"flex",gap:"16px",flexWrap:"wrap"}}>
+                        {log.event && <span>📅 {log.event}</span>}
+                        {log.date && <span>🗓 {log.date}</span>}
+                        {log.incidentLocation && <span>📍 {log.incidentLocation}</span>}
+                        {log.rulesAlleged && <span>📖 {log.rulesAlleged}</span>}
+                      </div>
+                      {log.outcome && (
+                        <div style={{marginTop:"8px",fontFamily:"'Crimson Pro',serif",fontSize:"14px"}}>
+                          <span style={{color:"#5a7898"}}>Outcome: </span>
+                          <span style={{color: log.outcome.toLowerCase().includes("uphold") || log.outcome.toLowerCase().includes("dsq") ? "#c05030" : log.outcome.toLowerCase().includes("dismiss") ? "#4a9e5a" : "#e2d9c8",fontWeight:"600"}}>{log.outcome}</span>
+                          {log.penaltyImposed && <span style={{color:"#7a96b4"}}> · Penalty: {log.penaltyImposed}</span>}
+                        </div>
+                      )}
+                      {log.factsFound && <div style={{marginTop:"8px",fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#5a7898",fontStyle:"italic",overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{log.factsFound}</div>}
+                    </div>
+                    <div style={{display:"flex",gap:"8px",flexShrink:0}}>
+                      <button onClick={() => {
+                        setDecForm({
+                          date: log.date||new Date().toISOString().slice(0,10),
+                          event:log.event||"",protestNo:log.protestNo||"",
+                          protestor:log.protestor||"",protestee:log.protestee||"",
+                          incidentTime:log.incidentTime||"",incidentLocation:log.incidentLocation||"",
+                          rulesAlleged:log.rulesAlleged||"",hearingDate:log.date||new Date().toISOString().slice(0,10),
+                          partiesPresent:"",validity:"valid",factsFound:log.factsFound||"",
+                          rulesApplied:log.rulesApplied||"",casesConsidered:"",
+                          decision: log.outcome&&log.outcome.toLowerCase().includes("dismiss") ? "dismissed" : "upheld",
+                          penalty:log.penaltyImposed||"",exoneration:"",rightToAppeal:true,
+                          panelChair:log.panelChair||"",panelMembers:log.panelMembers||"",notes:log.notes||""
+                        });
+                        setActiveTab("decision");
+                      }} style={{background:"transparent",border:"1px solid #1a3050",borderRadius:"6px",padding:"6px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",color:"#5a7898",cursor:"pointer"}}
+                        onMouseEnter={e=>{e.target.style.borderColor="#b8841e";e.target.style.color="#b8841e"}}
+                        onMouseLeave={e=>{e.target.style.borderColor="#1a3050";e.target.style.color="#5a7898"}}>
+                        🖨 Decision
+                      </button>
+                      <button onClick={() => { setEditingLog(log); setLogForm(log); setShowNewLog(true); window.scrollTo(0,0); }}
+                        style={{background:"transparent",border:"1px solid #1a3050",borderRadius:"6px",padding:"6px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",color:"#5a7898",cursor:"pointer"}}
+                        onMouseEnter={e=>{e.target.style.borderColor="#b8841e";e.target.style.color="#b8841e"}}
+                        onMouseLeave={e=>{e.target.style.borderColor="#1a3050";e.target.style.color="#5a7898"}}>
+                        ✏️ Edit
+                      </button>
+                      <button onClick={() => deleteLog(log.id)}
+                        style={{background:"transparent",border:"1px solid #1a3050",borderRadius:"6px",padding:"6px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",color:"#5a7898",cursor:"pointer"}}
+                        onMouseEnter={e=>{e.target.style.borderColor="#c05030";e.target.style.color="#c05030"}}
+                        onMouseLeave={e=>{e.target.style.borderColor="#1a3050";e.target.style.color="#5a7898"}}>
+                        🗑
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {logs.length > 0 && (
+              <div style={{marginTop:"20px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",color:"#3a5878",textAlign:"center"}}>
+                {logs.length} hearing record{logs.length !== 1 ? "s" : ""} saved locally on this device
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* DECISION FORM */}
+        {activeTab === "decision" && (
+          <div className="page">
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"24px",flexWrap:"wrap",gap:"12px"}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"26px",fontWeight:"900",color:"#e2d9c8"}}>
+                🖨️ Decision Form
+              </div>
+              <button className="btn btn-gold" onClick={printDecision} style={{fontSize:"16px",padding:"12px 28px"}}>
+                🖨️ Print / Save PDF
+              </button>
+            </div>
+
+            <div style={{background:"rgba(184,132,30,0.06)",border:"1px solid rgba(184,132,30,0.25)",borderRadius:"10px",padding:"12px 18px",marginBottom:"24px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#b8841e"}}>
+              Fill in the form below, then click Print / Save PDF to generate the official decision document. All fields are editable. Use the Hearing Log to pre-populate from a saved record.
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:"14px",marginBottom:"14px"}}>
+              {[
+                ["Event Name","event","text"],["Protest No.","protestNo","text"],
+                ["Date of Incident","date","date"],["Hearing Date","hearingDate","date"],
+                ["Protestor","protestor","text"],["Protestee","protestee","text"],
+                ["Incident Time","incidentTime","text"],["Incident Location","incidentLocation","text"],
+                ["Rules Alleged Broken","rulesAlleged","text"],["Panel Chair","panelChair","text"],
+              ].map(([label,field,type]) => (
+                <div key={field}>
+                  <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>{label}</div>
+                  <input type={type} value={decForm[field]||""} onChange={e=>setDecForm(f=>({...f,[field]:e.target.value}))}
+                    style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none"}} />
+                </div>
+              ))}
+            </div>
+
+            {[
+              ["Panel Members (all names)","panelMembers"],
+              ["Parties Present at Hearing","partiesPresent"],
+              ["Findings of Fact","factsFound"],
+              ["Rules Applied (with reasoning)","rulesApplied"],
+              ["Casebook Cases Considered","casesConsidered"],
+              ["Exoneration (if applicable)","exoneration"],
+              ["Additional Notes","notes"],
+            ].map(([label,field]) => (
+              <div key={field} style={{marginBottom:"14px"}}>
+                <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>{label}</div>
+                <textarea rows={field==="factsFound"||field==="rulesApplied"?5:3} value={decForm[field]||""}
+                  onChange={e=>setDecForm(f=>({...f,[field]:e.target.value}))}
+                  style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none",resize:"vertical"}} />
+              </div>
+            ))}
+
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:"14px",marginBottom:"14px"}}>
+              <div>
+                <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>Protest Validity</div>
+                <select value={decForm.validity} onChange={e=>setDecForm(f=>({...f,validity:e.target.value}))}
+                  style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none"}}>
+                  <option value="valid">Valid</option>
+                  <option value="invalid">Invalid — Dismissed</option>
+                </select>
+              </div>
+              <div>
+                <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>Decision</div>
+                <select value={decForm.decision} onChange={e=>setDecForm(f=>({...f,decision:e.target.value}))}
+                  style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none"}}>
+                  <option value="upheld">Protest Upheld</option>
+                  <option value="dismissed">Protest Dismissed</option>
+                  <option value="redress">Redress Granted</option>
+                  <option value="redress-denied">Redress Denied</option>
+                </select>
+              </div>
+              <div>
+                <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"11px",color:"#7a96b4",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"5px"}}>Penalty Imposed</div>
+                <input value={decForm.penalty||""} onChange={e=>setDecForm(f=>({...f,penalty:e.target.value}))}
+                  placeholder="e.g. DSQ, 20% scoring penalty"
+                  style={{width:"100%",background:"#08111f",border:"1px solid #2a4870",borderRadius:"8px",padding:"9px 12px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#e2d9c8",outline:"none"}} />
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:"12px",paddingTop:"22px"}}>
+                <input type="checkbox" id="appeal" checked={!!decForm.rightToAppeal}
+                  onChange={e=>setDecForm(f=>({...f,rightToAppeal:e.target.checked}))}
+                  style={{width:"18px",height:"18px",accentColor:"#b8841e",cursor:"pointer"}} />
+                <label htmlFor="appeal" style={{fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#c0d0e4",cursor:"pointer"}}>Include right to appeal notice (Rule 66/70)</label>
+              </div>
+            </div>
+
+            <div style={{marginTop:"24px",display:"flex",gap:"12px",justifyContent:"center"}}>
+              <button className="btn btn-gold" onClick={printDecision} style={{fontSize:"16px",padding:"14px 36px"}}>
+                🖨️ Print / Save as PDF
+              </button>
+              <button className="btn btn-ghost" onClick={() => { setActiveTab("log"); setShowNewLog(true); saveLog({
+                date:decForm.date,event:decForm.event,protestNo:decForm.protestNo,
+                protestor:decForm.protestor,protestee:decForm.protestee,
+                incidentTime:decForm.incidentTime,incidentLocation:decForm.incidentLocation,
+                rulesAlleged:decForm.rulesAlleged,outcome:decForm.decision==="upheld"?"Upheld":decForm.decision==="dismissed"?"Dismissed":"See notes",
+                penaltyImposed:decForm.penalty,factsFound:decForm.factsFound,
+                rulesApplied:decForm.rulesApplied,notes:decForm.notes,
+                panelChair:decForm.panelChair,panelMembers:decForm.panelMembers
+              }); }}>
+                💾 Save to Hearing Log
+              </button>
+            </div>
+          </div>
+        )}
+
+
+        {/* SAIL CANADA PRESCRIPTIONS */}
+        {activeTab === "canada" && (
+          <div className="page">
+            <div style={{display:"flex",alignItems:"center",gap:"16px",marginBottom:"28px",flexWrap:"wrap"}}>
+              <div style={{fontSize:"48px"}}>🍁</div>
+              <div>
+                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"28px",fontWeight:"900",color:"#e2d9c8",lineHeight:"1.1"}}>Sail Canada Prescriptions</div>
+                <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",color:"#b8841e",letterSpacing:"0.1em",textTransform:"uppercase",marginTop:"4px"}}>2025–2028 · Applicable to all Canadian events</div>
+              </div>
+            </div>
+
+            <div style={{background:"rgba(196,30,30,0.08)",border:"1px solid rgba(196,30,30,0.25)",borderLeft:"4px solid #c43030",borderRadius:"10px",padding:"14px 20px",marginBottom:"24px",fontFamily:"'Crimson Pro',serif",fontSize:"14px",color:"#d08080",lineHeight:"1.7"}}>
+              ⚠️ <strong>These prescriptions are mandatory at all Canadian events.</strong> The prescriptions to Part 5 and Rule 65.1 cannot be changed or deleted by sailing instructions — even when an international jury is appointed (Rule 88.2).
+            </div>
+
+            {[
+              {
+                rule: "Part 5 — Protests, Redress, Hearings, Misconduct and Appeals",
+                icon: "⚖️",
+                highlight: true,
+                text: "No fee shall be charged for any procedure of the protest committee under Part 5 or Appendix T.",
+                note: "CANNOT be changed by sailing instructions. Mandatory at all Canadian events."
+              },
+              {
+                rule: "Rule 46 — Person in Charge",
+                icon: "🧑‍✈️",
+                text: "The designated person in charge, if resident in Canada, shall be a member of Sail Canada through either a club affiliated to Sail Canada or such person's Provincial Sailing Association.",
+                note: "May be changed by sailing instructions if an IJ or no-appeal PC is appointed."
+              },
+              {
+                rule: "Rule 65.1 — Legal Liability and Costs",
+                icon: "💰",
+                highlight: true,
+                text: "A boat that has been found by a protest committee to have broken a rule and caused damage shall be considered at fault for the purposes of Rule 65.1.",
+                note: "CANNOT be changed by sailing instructions. Mandatory at all Canadian events. Important: both findings are required — rule broken AND damage caused."
+              },
+              {
+                rule: "Rule 70.3(b) — Appeals and Requests to a National Authority",
+                icon: "📬",
+                text: "Sail Canada so prescribes. Appeals and requests are made to Sail Canada.",
+                note: "Submit appeals and requests to: appeals@sailing.ca"
+              },
+              {
+                rule: "Rule 86.3 — Changes to the Racing Rules",
+                icon: "📝",
+                text: "Sail Canada so prescribes.",
+                note: null
+              },
+              {
+                rule: "Rule 88.2 — Changes to Prescriptions",
+                icon: "🔒",
+                highlight: true,
+                text: "Prescriptions to Part 5 and Rule 65.1 may not be changed or deleted. The notice of race or sailing instructions may change or delete any other Sail Canada prescription only if a no-appeal protest committee or an international jury has been appointed for the event.",
+                note: "This is the master rule governing which prescriptions can be modified."
+              },
+              {
+                rule: "Rule 91(b) — Protest Committee (International Jury)",
+                icon: "🌐",
+                text: "Before making a request to World Sailing for an international jury formed under Rule N1.7 comprised of only three members, written approval must be obtained from Sail Canada.",
+                note: "Contact: appeals@sailing.ca for prior written approval."
+              },
+              {
+                rule: "Appendix B, Rule B5 — Changes to Part 5 Rules",
+                icon: "⛵",
+                text: "Rule 70.3(b) — Appeals and Requests to a National Authority: Sail Canada so prescribes.",
+                note: "Applies to Windsurfing events under Appendix B."
+              },
+              {
+                rule: "Appendix G, Rule G2 — Sail Numbers (Other Boats)",
+                icon: "🔢",
+                text: "Unless otherwise stated in class rules, sails of a boat not in a World Sailing Class or recognized class shall comply with Rule G1. Boats not subject to G1 with overall length exceeding 6m racing under a measurement rule or handicapping system shall carry numbers on mainsails, spinnakers and overlapping headsails with luff perpendicular exceeding 130% of the foretriangle base.",
+                note: "Allotted by a sailing national authority."
+              },
+              {
+                rule: "Appendix R — Procedures for Appeals and Requests",
+                icon: "📮",
+                text: "Submit appeals and requests to Sail Canada at: appeals@sailing.ca. Sail Canada may delegate responsibilities under Rules 71.2, 71.3, 71.4, 71.5, R3, R4 and R5 to a provincial appeals committee. Decisions of a provincial appeals committee may be further appealed to Sail Canada.",
+                note: "On a further appeal: 'protest committee' is changed to 'provincial appeals committee' wherever found. In Rule R4.1 the protest committee may also comment on the further appeal and receive copies."
+              },
+            ].map((item, i) => (
+              <div key={i} style={{
+                background: item.highlight ? "linear-gradient(135deg, #1a2a0a, #0d1e05)" : "linear-gradient(135deg, #0d1e35, #0a1828)",
+                border: `1px solid ${item.highlight ? "rgba(80,140,30,0.4)" : "#1a3050"}`,
+                borderLeft: `4px solid ${item.highlight ? "#5a9e1a" : "#b8841e"}`,
+                borderRadius:"12px", padding:"20px 22px", marginBottom:"14px"
+              }}>
+                <div style={{display:"flex",gap:"12px",alignItems:"flex-start"}}>
+                  <span style={{fontSize:"22px",flexShrink:0}}>{item.icon}</span>
+                  <div style={{flex:1}}>
+                    <div style={{fontFamily:"'Playfair Display',serif",fontSize:"15px",fontWeight:"700",
+                      color: item.highlight ? "#8ece3a" : "#b8841e",
+                      marginBottom:"8px",letterSpacing:"0.01em"}}>{item.rule}</div>
+                    <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"15px",color:"#c0d0e4",lineHeight:"1.65",marginBottom: item.note ? "10px" : "0"}}>{item.text}</div>
+                    {item.note && (
+                      <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"13px",
+                        color: item.highlight ? "#8ece3a" : "#7a96b4",
+                        fontStyle:"italic",lineHeight:"1.5",
+                        borderTop: `1px solid ${item.highlight ? "rgba(80,140,30,0.2)" : "rgba(26,48,80,0.6)"}`,
+                        paddingTop:"8px"}}>
+                        ℹ️ {item.note}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            <div style={{background:"#0a1828",border:"1px solid #1a3050",borderRadius:"12px",padding:"20px 24px",marginTop:"8px"}}>
+              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"16px",color:"#b8841e",marginBottom:"12px",fontWeight:"700"}}>📬 Sail Canada Appeals Contact</div>
+              <div style={{fontFamily:"'Crimson Pro',serif",fontSize:"15px",color:"#c0d0e4",lineHeight:"1.8"}}>
+                All appeals, requests, and correspondence to Sail Canada:<br/>
+                <strong style={{color:"#e2d9c8"}}>appeals@sailing.ca</strong><br/>
+                <span style={{fontSize:"13px",color:"#5a7898"}}>Provincial appeals committee decisions may be further appealed to Sail Canada.</span>
+              </div>
+              <button className="btn btn-ghost" style={{marginTop:"16px",fontSize:"13px"}}
+                onClick={() => { setActiveTab("assistant"); setInput("Explain the Sail Canada prescriptions that are most important for a protest committee judge to know, particularly those that cannot be changed by sailing instructions."); }}>
+                Ask AI to explain key prescriptions →
+              </button>
+            </div>
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+}
+
+
+// API Key wrapper component
+function AppWithAuth() {
+  const [apiKey, setApiKey] = React.useState(() => {
+    try { return localStorage.getItem("sailing_judge_api_key") || ""; } catch(e) { return ""; }
+  });
+  const [inputKey, setInputKey] = React.useState("");
+  const [error, setError] = React.useState("");
+  const [showHelp, setShowHelp] = React.useState(false);
+
+  const handleSave = () => {
+    const key = inputKey.trim();
+    if (!key.startsWith("sk-ant-")) {
+      setError("Please enter a valid Anthropic API key (starts with sk-ant-)");
+      return;
+    }
+    try { localStorage.setItem("sailing_judge_api_key", key); } catch(e) {}
+    setApiKey(key);
+  };
+
+  // Inject API key into fetch calls by monkey-patching fetch
+  React.useEffect(() => {
+    if (!apiKey) return;
+    const originalFetch = window._originalFetch || window.fetch;
+    window._originalFetch = originalFetch;
+    window.fetch = function(url, options) {
+      if (typeof url === "string" && url.includes("anthropic.com")) {
+        options = options || {};
+        options.headers = {
+          ...options.headers,
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-calls": "true",
+        };
+      }
+      return originalFetch(url, options);
+    };
+    return () => { if (window._originalFetch) window.fetch = window._originalFetch; };
+  }, [apiKey]);
+
+  if (!apiKey) {
+    return (
+      <div className="api-screen">
+        <div className="api-card">
+          <div className="api-seal">⚓</div>
+          <div className="api-title">Sailing Judge Assistant</div>
+          <div className="api-subtitle">Racing Rules Guidance Tool</div>
+          <div className="api-edition">2025–2028 RRS · World Sailing Case Book · Sail Canada Prescriptions</div>
+          <div style={{marginTop:"6px",fontFamily:"'Crimson Pro',serif",fontSize:"12px",color:"#3a5878"}}>https://sailing416-ship-it.github.io/sailing-judge/</div>
+
+          <div className="api-divider" />
+
+          <div className="api-label">Enter Your Anthropic API Key</div>
+          <input
+            className="api-input"
+            type="password"
+            placeholder="sk-ant-api03-..."
+            value={inputKey}
+            onChange={e => { setInputKey(e.target.value); setError(""); }}
+            onKeyDown={e => e.key === "Enter" && handleSave()}
+          />
+          {error && <div style={{color:"#c05030", fontSize:"13px", marginBottom:"12px", textAlign:"left"}}>{error}</div>}
+          <button className="api-btn" onClick={handleSave}>Launch Application →</button>
+
+          <button
+            onClick={() => setShowHelp(!showHelp)}
+            style={{
+              width:"100%", marginTop:"12px", background:"transparent",
+              border:"1px solid #2a4870", borderRadius:"8px", padding:"10px",
+              fontFamily:"'Crimson Pro',serif", fontSize:"14px", color:"#7a96b4",
+              cursor:"pointer", transition:"all 0.2s",
+              display:"flex", alignItems:"center", justifyContent:"center", gap:"8px"
+            }}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor="#b8841e";e.currentTarget.style.color="#b8841e"}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor="#2a4870";e.currentTarget.style.color="#7a96b4"}}
+          >
+            <span>{showHelp ? "▲" : "▼"}</span>
+            {showHelp ? "Hide" : "❓ What is an API key and how do I get one?"}
+          </button>
+
+          {showHelp && (
+            <div style={{
+              marginTop:"14px", background:"#08111f", border:"1px solid #1a3050",
+              borderRadius:"10px", padding:"20px", textAlign:"left",
+              fontFamily:"'Crimson Pro',serif", fontSize:"14px", color:"#c0d0e4", lineHeight:"1.8"
+            }}>
+              <div style={{fontFamily:"'Playfair Display',serif", fontSize:"16px", fontWeight:"700", color:"#b8841e", marginBottom:"14px"}}>
+                How to Get Your API Key — 3 Steps
+              </div>
+
+              {[
+                {
+                  n:"1",
+                  title:"Create a free Anthropic account",
+                  body:<>Go to <a href="https://console.anthropic.com" target="_blank" style={{color:"#b8841e"}}>console.anthropic.com</a> and sign up. It is free to register.</>
+                },
+                {
+                  n:"2",
+                  title:'Click "API Keys" then "Create Key"',
+                  body:'In the left menu, choose API Keys. Click the Create Key button. Give it any name (e.g. "Sailing Judge App"). Copy the key — it starts with sk-ant-'
+                },
+                {
+                  n:"3",
+                  title:"Paste it above and click Launch",
+                  body:"Paste the key into the field above and click Launch Application. The app saves it on this device — you only need to do this once."
+                }
+              ].map(step => (
+                <div key={step.n} style={{display:"flex", gap:"14px", marginBottom:"14px", alignItems:"flex-start"}}>
+                  <div style={{
+                    width:"28px", height:"28px", flexShrink:0,
+                    background:"linear-gradient(135deg,#b8841e,#9a6e10)",
+                    borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
+                    fontFamily:"'Playfair Display',serif", fontWeight:"700", fontSize:"14px", color:"#08111f"
+                  }}>{step.n}</div>
+                  <div>
+                    <div style={{fontWeight:"600", color:"#e2d9c8", marginBottom:"2px"}}>{step.title}</div>
+                    <div style={{color:"#7a96b4"}}>{step.body}</div>
+                  </div>
+                </div>
+              ))}
+
+              <div style={{borderTop:"1px solid #1a3050", paddingTop:"14px", marginTop:"4px"}}>
+                <div style={{fontFamily:"'Playfair Display',serif", fontSize:"14px", fontWeight:"700", color:"#e2d9c8", marginBottom:"10px"}}>Frequently Asked Questions</div>
+                {[
+                  ["Is it free?", "Anthropic gives you US$5 of free credit when you sign up — enough for hundreds of queries. After that, each question costs roughly $0.01–$0.05. A full regatta weekend typically costs under $3."],
+                  ["Is my key safe?", "Yes. Your key is stored only on this device (in your browser's local storage). It is sent directly to Anthropic's servers when you ask a question and nowhere else."],
+                  ["Do other judges need their own key?", "Yes — each person using the app on their own device needs their own key. Share this link: https://sailing416-ship-it.github.io/sailing-judge/ — they open it in any browser, create their own free Anthropic account, and enter their key once."],
+                  ["What if I want to remove my key?", "Clear your browser's local storage for this page, or open the file in a private/incognito window to start fresh."],
+                  ["Can I set a spending limit?", "Yes. At console.anthropic.com go to Settings → Limits to set a monthly spending cap."],
+                ].map(([q,a],i) => (
+                  <div key={i} style={{marginBottom:"12px"}}>
+                    <div style={{color:"#b8841e", fontWeight:"600", marginBottom:"2px"}}>Q: {q}</div>
+                    <div style={{color:"#7a96b4"}}>{a}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{
+                marginTop:"14px", background:"rgba(184,132,30,0.08)",
+                border:"1px solid rgba(184,132,30,0.25)", borderRadius:"8px",
+                padding:"10px 14px", fontSize:"13px", color:"#b8841e"
+              }}>
+                💡 <strong>Tip:</strong> The Hearing Wizard, Rules Reference, Sail Canada Prescriptions, Hearing Log, and Decision Form all work without an API key. Only the AI Assistant tab requires one.
+              </div>
+            </div>
+          )}
+
+          <div className="api-note" style={{marginTop:"14px"}}>
+            🔒 Your key is stored locally on this device only and never shared.<br/>
+            Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a><br/>
+            App URL: <a href="https://sailing416-ship-it.github.io/sailing-judge/" target="_blank" style={{color:"#5a7898"}}>sailing416-ship-it.github.io/sailing-judge</a>
+          </div>
+          <div className="api-copyright">
+            <strong>© 2025 John Golding. All rights reserved.</strong><br/>
+            Created by John Golding. Procedural guidance tool for sailing protest committees.<br/>
+            Racing Rules of Sailing © World Sailing Limited 2025.<br/>
+            Case Book © World Sailing Limited, July 2025.<br/>
+            Sail Canada Prescriptions © Sail Canada 2025.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <SailingJudgeApp />
+      <footer className="app-footer">
+        <div className="footer-copy">
+          <strong>© 2025 John Golding. All rights reserved.</strong> · Created by John Golding · 
+          Sailing protest committee guidance tool · Version 1.0 (2025)
+        </div>
+        <div className="footer-ws">
+          Racing Rules of Sailing © World Sailing Ltd 2025 · Case Book © World Sailing Ltd, July 2025 · Sail Canada Prescriptions © Sail Canada 2025 · 
+          Guidance only — not a substitute for judicial discretion
+        </div>
+      </footer>
+    </>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<AppWithAuth />);
+</script>
+</body>
+</html>
