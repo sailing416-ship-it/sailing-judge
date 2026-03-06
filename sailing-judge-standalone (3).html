@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sailing Judge Assistant — John Golding</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#08111f;color:#e2d9c8;font-family:Georgia,serif}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#08111f}::-webkit-scrollbar-thumb{background:#b8841e;border-radius:3px}
+
+/* LAUNCH SCREEN */
+#launch{min-height:100vh;background:#08111f;display:flex;align-items:center;justify-content:center;padding:24px}
+.lcard{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #b8841e;border-radius:20px;padding:44px;max-width:520px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.lseal{width:72px;height:72px;margin:0 auto 20px;background:radial-gradient(circle,#d4a030,#b8841e,#8a6010);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 30px rgba(184,132,30,.5)}
+.ltitle{font-size:28px;font-weight:700;color:#e2d9c8;margin-bottom:6px}
+.lsub{font-size:14px;font-style:italic;color:#b8841e;margin-bottom:4px}
+.ledition{font-size:11px;color:#5a7898;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.lurl{font-size:12px;color:#3a5878;margin-bottom:24px}
+.ldiv{height:1px;background:#1a3050;margin:0 0 20px}
+.llabel{font-size:11px;color:#7a96b4;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;text-align:left}
+.linput{width:100%;background:#08111f;border:1px solid #2a4870;border-radius:10px;padding:13px 16px;font-family:Georgia,serif;font-size:15px;color:#e2d9c8;outline:none;margin-bottom:8px}
+.linput:focus{border-color:#b8841e}
+.lerr{color:#c05030;font-size:13px;margin-bottom:10px;text-align:left}
+.lbtn{width:100%;background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:Georgia,serif}
+.lbtn:hover{background:linear-gradient(135deg,#d4a030,#b8841e)}
+.helpbtn{width:100%;background:transparent;border:1px solid #2a4870;border-radius:8px;padding:10px;font-size:14px;color:#7a96b4;cursor:pointer;font-family:Georgia,serif;margin-bottom:0}
+.helpbtn:hover{border-color:#b8841e;color:#b8841e}
+#helpbox{display:none;margin-top:14px;background:#08111f;border:1px solid #1a3050;border-radius:10px;padding:20px;text-align:left;font-size:14px;color:#c0d0e4;line-height:1.8}
+.hstep{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.hnum{width:28px;height:28px;flex-shrink:0;background:linear-gradient(135deg,#b8841e,#9a6e10);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#08111f}
+.faq-q{color:#b8841e;font-weight:600;margin-bottom:2px}
+.faq-a{color:#7a96b4;margin-bottom:12px}
+.ltip{margin-top:14px;background:rgba(184,132,30,.08);border:1px solid rgba(184,132,30,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:#b8841e}
+.lnote{margin-top:14px;font-size:12px;color:#3a5878;line-height:1.8}
+.lnote a{color:#5a7898}
+.lcopy{margin-top:14px;padding-top:14px;border-top:1px solid #1a3050;font-size:12px;color:#3a5878;line-height:1.9}
+
+/* MAIN APP */
+#app{display:none;min-height:100vh;flex-direction:column}
+.header{background:linear-gradient(180deg,#0c1a2e,#08111f);border-bottom:1px solid #b8841e;padding:0 16px;display:flex;align-items:center;position:sticky;top:0;z-index:200;box-shadow:0 2px 40px rgba(0,0,0,.6)}
+.brand{display:flex;align-items:center;gap:12px;padding:12px 16px 12px 0;border-right:1px solid #1a3050;flex-shrink:0}
+.seal{width:42px;height:42px;background:radial-gradient(circle,#d4a030,#b8841e,#8a6010);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 16px rgba(184,132,30,.5)}
+.brand-title{font-size:17px;font-weight:700;color:#e2d9c8}
+.brand-ed{font-size:10px;color:#b8841e;letter-spacing:.1em;text-transform:uppercase}
+nav{display:flex;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nb{padding:0 14px;height:64px;font-family:Georgia,serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5a7898;border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;border-top:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:5px}
+.nb:hover{color:#c8b898}
+.nb.on{color:#b8841e;border-bottom-color:#b8841e;background:rgba(184,132,30,.06)}
+.hearing-badge{flex-shrink:0;padding:0 12px}
+.hpill{background:rgba(30,90,50,.2);border:1px solid #2a6e3a;border-radius:20px;padding:5px 12px;font-size:12px;color:#4a9e5a;display:flex;align-items:center;gap:6px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.dot-live{animation:blink 1.5s infinite}
+
+.page{padding:24px;max-width:960px;margin:0 auto;width:100%}
+
+/* CARDS */
+.card{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:14px;padding:22px;cursor:pointer;transition:all .25s}
+.card:hover{border-color:#b8841e;transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:20px 0}
+.ci{font-size:30px;margin-bottom:10px}
+.ct{font-size:18px;font-weight:700;color:#e2d9c8;margin-bottom:7px}
+.cd{font-size:13px;color:#7a96b4;line-height:1.6}
+.cb{display:inline-block;margin-top:12px;background:rgba(184,132,30,.12);color:#b8841e;font-size:11px;font-weight:600;letter-spacing:.1em;padding:3px 10px;border-radius:4px}
+
+/* BUTTONS */
+.btn{padding:10px 24px;border-radius:8px;font-family:Georgia,serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f}
+.btn-gold:hover{background:linear-gradient(135deg,#d4a030,#b8841e);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:#5a7898;border:1px solid #1a3050}
+.btn-ghost:hover{border-color:#b8841e;color:#b8841e}
+.btn-ghost:disabled{opacity:.25;cursor:not-allowed}
+.btn-green{background:linear-gradient(135deg,#2a6e3a,#1e5430);color:#e2d9c8}
+
+/* WIZARD */
+.prog-wrap{background:#0a1828;border:1px solid #1a3050;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.prog-meta{display:flex;justify-content:space-between;font-size:12px;color:#5a7898;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.prog-track{height:3px;background:#1a3050;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#b8841e,#d4a030);transition:width .4s}
+.sdots{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.sdot{width:30px;height:30px;border-radius:50%;border:2px solid #1a3050;background:transparent;cursor:pointer;font-size:12px;font-weight:600;color:#5a7898;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.sdot:hover,.sdot.cur{border-color:#b8841e;color:#b8841e;background:rgba(184,132,30,.12)}
+.sdot.done{border-color:#2a6e3a;background:#2a6e3a;color:#fff}
+.step-card{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:16px;overflow:hidden;margin-bottom:16px}
+.step-top{background:linear-gradient(135deg,#0f2240,#0d1e35);border-bottom:1px solid #1a3050;padding:20px 26px;display:flex;align-items:flex-start;gap:16px}
+.step-icon{font-size:36px;flex-shrink:0}
+.step-lbl{font-size:11px;color:#b8841e;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.step-h{font-size:22px;font-weight:700;color:#e2d9c8}
+.step-sub{font-size:14px;font-style:italic;color:#7a96b4;margin-top:2px}
+.step-body{padding:18px 26px}
+.cl-item{display:flex;align-items:flex-start;gap:14px;padding:10px 4px;border-bottom:1px solid rgba(26,48,80,.6);cursor:pointer}
+.cl-item:last-child{border-bottom:none}
+.cl-item:hover{background:rgba(184,132,30,.04)}
+.chk{width:22px;height:22px;border:2px solid #2a4870;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px}
+.chk.on{background:#2a6e3a;border-color:#2a6e3a}
+.cl-txt{font-size:15px;color:#c0d0e4;line-height:1.5}
+.cl-txt.on{color:#5a7898;text-decoration:line-through}
+.warn{background:rgba(160,90,0,.1);border:1px solid rgba(184,132,30,.35);border-left:4px solid #b8841e;border-radius:6px;padding:12px 16px;margin-top:16px;display:flex;gap:10px}
+.warn-txt{font-size:14px;color:#c8a050;line-height:1.6}
+.step-foot{display:flex;justify-content:space-between;align-items:center;padding:14px 26px;border-top:1px solid #1a3050}
+.step-cnt{font-size:13px;color:#b8841e}
+.ai-hint{background:transparent;border:1px solid #1a3050;border-radius:6px;padding:6px 14px;font-size:13px;color:#5a7898;cursor:pointer;font-family:Georgia,serif}
+.ai-hint:hover{border-color:#b8841e;color:#b8841e}
+.step-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 26px;border-top:1px solid #1a3050}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 155px);min-height:500px}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding:4px 0}
+.msg{display:flex;gap:12px;align-items:flex-start}
+.msg.usr{flex-direction:row-reverse}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.av.ai{background:radial-gradient(circle,#d4a030,#b8841e)}
+.av.usr{background:linear-gradient(135deg,#1a3050,#2a4870)}
+.bubble{max-width:84%;padding:14px 18px;border-radius:14px;font-size:15px;line-height:1.7;white-space:pre-wrap}
+.bubble.ai{background:#0d1e35;border:1px solid #1a3050;color:#c0d0e4;border-top-left-radius:4px}
+.bubble.usr{background:linear-gradient(135deg,#1a3050,#2a4870);color:#e2d9c8;border-top-right-radius:4px;margin-left:auto}
+.quick-qs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.qq{background:rgba(26,48,80,.5);border:1px solid #2a4870;border-radius:20px;padding:6px 14px;font-size:13px;color:#7a96b4;cursor:pointer;transition:all .2s}
+.qq:hover{border-color:#b8841e;color:#b8841e}
+.chat-input-row{border-top:1px solid #1a3050;padding-top:14px;display:flex;gap:10px}
+.chat-ta{flex:1;background:#0d1e35;border:1px solid #1a3050;border-radius:10px;padding:12px 16px;font-family:Georgia,serif;font-size:15px;color:#e2d9c8;outline:none;resize:none;transition:border .2s}
+.chat-ta:focus{border-color:#b8841e}
+.chat-ta::placeholder{color:#304060}
+.send-btn{background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f;border:none;border-radius:10px;padding:12px 18px;font-size:18px;cursor:pointer;align-self:flex-end;transition:all .2s}
+.send-btn:hover:not(:disabled){transform:translateY(-1px)}
+.send-btn:disabled{opacity:.3;cursor:not-allowed}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+.dot{width:8px;height:8px;background:#b8841e;border-radius:50%;animation:bounce 1.2s infinite;display:inline-block;margin:0 2px}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+
+/* RULES */
+.rules-search{width:100%;background:#0d1e35;border:1px solid #1a3050;border-radius:10px;padding:12px 18px;font-family:Georgia,serif;font-size:15px;color:#e2d9c8;outline:none;margin-bottom:20px}
+.rules-search:focus{border-color:#b8841e}
+.sec-title{font-size:17px;font-weight:700;color:#b8841e;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid #1a3050}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-bottom:8px}
+.rc{background:#0a1828;border:1px solid #1a3050;border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .2s}
+.rc:hover{border-color:#b8841e;transform:translateY(-2px)}
+.rnum{font-size:12px;color:#b8841e;font-weight:700;letter-spacing:.06em;margin-bottom:3px}
+.rname{font-size:16px;font-weight:700;color:#e2d9c8;margin-bottom:7px}
+.rsum{font-size:13px;color:#7a96b4;line-height:1.55}
+.rtap{margin-top:10px;font-size:11px;color:#3a5878}
+
+/* FORM INPUTS */
+.fi{width:100%;background:#08111f;border:1px solid #2a4870;border-radius:8px;padding:9px 12px;font-family:Georgia,serif;font-size:14px;color:#e2d9c8;outline:none}
+.fi:focus{border-color:#b8841e}
+.fl{font-size:11px;color:#7a96b4;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.fg{margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+
+/* HOME WHATS IN APP */
+.wia{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:16px;overflow:hidden;margin-bottom:24px}
+.wia-hdr{background:linear-gradient(135deg,#0f2240,#0d1e35);border-bottom:1px solid #1a3050;padding:18px 26px;display:flex;align-items:center;gap:12px}
+.wia-body{padding:22px 26px}
+.free-badge{display:inline-block;background:rgba(42,110,58,.2);border:1px solid #2a6e3a;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:#4a9e5a;letter-spacing:.08em;margin-bottom:14px}
+.api-badge{display:inline-block;background:rgba(184,132,30,.15);border:1px solid rgba(184,132,30,.4);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:#b8841e;letter-spacing:.08em;margin-bottom:14px}
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.mini-card{background:rgba(42,110,58,.06);border:1px solid rgba(42,110,58,.25);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.mini-card:hover{border-color:#2a6e3a;background:rgba(42,110,58,.12)}
+.ai-card{background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.25);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .2s}
+.ai-card:hover{border-color:#b8841e;background:rgba(184,132,30,.1)}
+.cost-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.cost-card{background:#08111f;border:1px solid #1a3050;border-radius:10px;padding:14px 16px}
+.divider{height:1px;background:#1a3050;margin:20px 0}
+
+/* SAIL CANADA */
+.sc-card{border-radius:12px;padding:18px 20px;margin-bottom:12px;display:flex;gap:12px}
+.sc-rule{font-size:15px;font-weight:700;margin-bottom:7px}
+.sc-text{font-size:15px;color:#c0d0e4;line-height:1.65}
+.sc-note{font-size:13px;font-style:italic;border-top:1px solid rgba(26,48,80,.6);padding-top:8px;margin-top:10px;color:#7a96b4}
+
+/* LOG */
+.log-entry{background:#0d1e35;border:1px solid #1a3050;border-radius:14px;padding:18px 22px;transition:border .2s;margin-bottom:12px}
+.log-entry:hover{border-color:#b8841e}
+.log-vs{font-size:17px;font-weight:700;color:#e2d9c8}
+.log-meta{font-size:13px;color:#7a96b4;display:flex;gap:14px;flex-wrap:wrap;margin-top:5px}
+.log-btns{display:flex;gap:6px;flex-shrink:0}
+.log-btn{background:transparent;border:1px solid #1a3050;border-radius:6px;padding:6px 10px;font-size:12px;color:#7a96b4;cursor:pointer;font-family:Georgia,serif}
+.log-btn:hover{border-color:#b8841e;color:#b8841e}
+.log-btn.del:hover{border-color:#c05030;color:#c05030}
+
+/* DISCLAIMER */
+.disc{background:#0a1828;border:1px solid #1a3050;border-left:4px solid #b8841e;border-radius:10px;padding:18px 22px;margin-top:16px}
+.disc-t{font-size:15px;color:#b8841e;margin-bottom:8px;font-weight:700}
+.disc-b{font-size:14px;color:#7a96b4;line-height:1.7}
+
+/* SHARE BOX */
+.share-box{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.share-url{background:#08111f;border:1px solid #1a3050;border-radius:6px;padding:8px 14px;font-family:monospace;font-size:13px;color:#b8841e;flex:1;min-width:240px}
+.copy-btn{background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f;border:none;border-radius:8px;padding:8px 18px;font-family:Georgia,serif;font-size:14px;font-weight:700;cursor:pointer}
+
+/* FOOTER */
+footer{background:#050e1a;border-top:1px solid #1a3050;padding:14px 24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:24px}
+.fc{font-size:12px;color:#3a5878}
+.fw{font-size:11px;color:#2a4060;letter-spacing:.04em}
+
+/* START SCREEN */
+.start-screen{text-align:center;padding:60px 20px}
+</style>
+</head>
+<body>
+
+<!-- LAUNCH SCREEN -->
+<div id="launch">
+  <div class="lcard">
+    <div class="lseal">⚓</div>
+    <div class="ltitle">Sailing Judge Assistant</div>
+    <div class="lsub">Racing Rules Guidance Tool</div>
+    <div class="ledition">2025–2028 RRS · World Sailing Case Book · Sail Canada Prescriptions</div>
+    <div class="lurl">sailing416-ship-it.github.io/sailing-judge</div>
+    <div class="ldiv"></div>
+    <div class="llabel">Enter Your Anthropic API Key</div>
+    <input class="linput" id="keyInput" type="password" placeholder="sk-ant-api03-..." />
+    <div class="lerr" id="keyErr" style="display:none"></div>
+    <button class="lbtn" onclick="launch()">Launch Application →</button>
+    <button class="helpbtn" onclick="toggleHelp()">▼ &nbsp;❓ What is an API key and how do I get one?</button>
+    <div id="helpbox">
+      <div style="font-size:16px;font-weight:700;color:#b8841e;margin-bottom:14px">How to Get Your API Key — 3 Steps</div>
+      <div class="hstep"><div class="hnum">1</div><div><div style="font-weight:600;color:#e2d9c8;margin-bottom:2px">Create a free Anthropic account</div><div style="color:#7a96b4">Go to <a href="https://console.anthropic.com" target="_blank" style="color:#b8841e">console.anthropic.com</a> and sign up. Free to register — no credit card needed.</div></div></div>
+      <div class="hstep"><div class="hnum">2</div><div><div style="font-weight:600;color:#e2d9c8;margin-bottom:2px">Click "API Keys" then "Create Key"</div><div style="color:#7a96b4">In the left menu, choose API Keys. Click Create Key. Give it any name. Copy the key — it starts with sk-ant-</div></div></div>
+      <div class="hstep"><div class="hnum">3</div><div><div style="font-weight:600;color:#e2d9c8;margin-bottom:2px">Paste it above and click Launch</div><div style="color:#7a96b4">Paste the key above and click Launch Application. The app saves it in this browser — you only need to do this once.</div></div></div>
+      <div style="border-top:1px solid #1a3050;padding-top:14px;margin-top:4px">
+        <div style="font-weight:700;color:#e2d9c8;margin-bottom:10px">Frequently Asked Questions</div>
+        <div class="faq-q">Q: Is it free?</div><div class="faq-a">Anthropic gives you US$5 of free credit when you sign up — enough for 100–500 queries. Each question costs ~$0.01–$0.05 (1–5 cents Canadian). A full regatta weekend typically costs under $3.</div>
+        <div class="faq-q">Q: Is my key safe?</div><div class="faq-a">Your key is stored only in your browser's local storage on this device. It is sent directly to Anthropic when you ask a question and nowhere else.</div>
+        <div class="faq-q">Q: Do other judges need their own key?</div><div class="faq-a">Yes — each device needs its own key. Share the app link: <span style="color:#b8841e">sailing416-ship-it.github.io/sailing-judge</span> — they open it in any browser and create their own free account.</div>
+        <div class="faq-q">Q: Can I set a spending limit?</div><div class="faq-a">Yes. At console.anthropic.com go to Settings → Limits to set a monthly spending cap.</div>
+      </div>
+      <div class="ltip">💡 <strong>Tip:</strong> The Hearing Wizard, Rules Reference, Sail Canada Prescriptions, Hearing Log and Decision Form all work <strong>without</strong> an API key. Only the AI Assistant tab requires one.</div>
+    </div>
+    <div class="lnote">🔒 Key stored locally on this device only<br>Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+    <div class="lcopy">
+      <strong style="color:#5a7898">© 2025 John Golding. All rights reserved.</strong><br>
+      Created by John Golding. Protest committee guidance tool.<br>
+      Racing Rules of Sailing © World Sailing Limited 2025.<br>
+      Case Book © World Sailing Limited, July 2025.<br>
+      Sail Canada Prescriptions © Sail Canada 2025.
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="header">
+    <div class="brand">
+      <div class="seal">⚓</div>
+      <div>
+        <div class="brand-title">Sailing Judge Assistant</div>
+        <div class="brand-ed">RRS 2025–2028 · Case Book · Sail Canada</div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="hearing-badge" id="hearingBadge" style="display:none">
+      <div class="hpill"><span class="dot-live">●</span> Hearing Active</div>
+    </div>
+  </div>
+  <div id="pageContent"></div>
+  <footer>
+    <div class="fc"><strong style="color:#5a7898">© 2025 John Golding. All rights reserved.</strong> · Sailing protest committee guidance tool · v1.0 (2025)</div>
+    <div class="fw">RRS © World Sailing Ltd 2025 · Case Book © World Sailing Ltd July 2025 · Sail Canada Prescriptions © Sail Canada 2025 · Guidance only</div>
+  </footer>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var API_KEY = '';
+var activeTab = 'home';
+var hearingStep = 0;
+var hearingStarted = false;
+var checkedItems = {};
+var chatMessages = [{role:'assistant',content:'Welcome. I\'m your sailing judge assistant, trained on the 2025-2028 Racing Rules of Sailing, World Sailing Case Book, and Sail Canada Prescriptions.\n\nAsk me about any rule, incident, or procedure. I\'ll always cite specific rule and case numbers.\n\nTip: Hearing Wizard, Rules Reference, Sail Canada tab, Hearing Log and Decision Form all work without an API key. Only this AI tab needs one.'}];
+var chatLoading = false;
+var rulesSearch = '';
+var hearingLogs = [];
+var showLogForm = false;
+var editingLogId = null;
+var logForm = {date:today(),event:'',protestNo:'',protestor:'',protestee:'',incidentTime:'',incidentLocation:'',rulesAlleged:'',outcome:'',penalty:'',facts:'',rules:'',notes:'',chair:'',members:''};
+var decForm = {date:today(),event:'',protestNo:'',protestor:'',protestee:'',incidentTime:'',incidentLocation:'',rulesAlleged:'',hearingDate:today(),parties:'',validity:'valid',facts:'',rules:'',cases:'',exoneration:'',decision:'upheld',penalty:'',notes:'',chair:'',members:'',appeal:true};
+
+function today(){return new Date().toISOString().slice(0,10);}
+
+// ── LAUNCH ────────────────────────────────────────────────────────────────────
+function toggleHelp(){
+  var b = document.getElementById('helpbox');
+  var btn = document.querySelector('.helpbtn');
+  if(b.style.display==='none'){b.style.display='block';btn.textContent='▲  Hide help';}
+  else{b.style.display='none';btn.textContent='▼  ❓ What is an API key and how do I get one?';}
+}
+
+function launch(){
+  var k = document.getElementById('keyInput').value.trim();
+  var err = document.getElementById('keyErr');
+  if(!k.startsWith('sk-ant-')){err.textContent='Key must start with sk-ant-';err.style.display='block';return;}
+  API_KEY = k;
+  try{localStorage.setItem('sja_key',k);}catch(e){}
+  document.getElementById('launch').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.flexDirection='column';
+  renderNav();
+  renderPage();
+}
+
+// Check for saved key
+(function(){
+  try{var k=localStorage.getItem('sja_key');if(k&&k.startsWith('sk-ant-')){document.getElementById('keyInput').value=k;}}catch(e){}
+  document.getElementById('keyInput').addEventListener('keydown',function(e){if(e.key==='Enter')launch();});
+})();
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+var TABS = [['home','🏠','Home'],['wizard','⚖️','Wizard'],['assistant','🤖','AI Assistant'],['rules','📖','Rules'],['canada','🍁','Sail Canada'],['log','🗂️','Log'],['decision','🖨️','Decision']];
+
+function renderNav(){
+  var nav = document.getElementById('nav');
+  nav.innerHTML = TABS.map(function(t){
+    return '<button class="nb'+(activeTab===t[0]?' on':'')+'" onclick="goTab(\''+t[0]+'\')">'+'<span>'+t[1]+'</span> '+t[2]+'</button>';
+  }).join('');
+}
+
+function goTab(id){
+  activeTab=id;
+  if(id==='wizard'&&!hearingStarted){hearingStarted=false;}
+  renderNav();
+  renderPage();
+  window.scrollTo(0,0);
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+var STEPS = [
+  {id:1,icon:'📋',title:'Receive & Log Protest',rule:'Rule 60.3',desc:'Check protest received within time limit',
+   items:['Note exact time protest was received','Check time limit has not expired (SI may specify; default is end of protest time limit)','Assign a protest number','Identify protestor and protestee boat(s)','Log incident: time, location, rules alleged','Note if RC or PC is the protestor'],
+   warn:'If potentially outside time limit, do not dismiss — hold validity hearing first. The PC may extend the time limit if there is good reason (Rule 60.3(b)).'},
+  {id:2,icon:'✅',title:'Check Validity',rule:'Rules 60.2, 60.3',desc:'Determine if protest meets all requirements',
+   items:["Was 'Protest' hailed at first reasonable opportunity? (Rule 60.2(a)(1))","Was red flag displayed promptly if hull >6m? (Rule 60.2(a)(1))","Check flag exceptions: not in hailing distance? Error in course? Injury/damage? (Rule 60.2(b))",'Is protest in writing? (Rule 60.3(a))','Does it identify protestor and protestee? (Rule 60.3(a))','Does it describe the incident? (Rule 60.3(a))','Was it delivered within the time limit? (Rule 60.3(b))','If RC/PC protest: was boat informed after race within time limit?'],
+   warn:'If invalid, inform parties with reasons and record the decision. A redress request is invalid if it does not comply with Rule 60.3.'},
+  {id:3,icon:'📢',title:'Notify All Parties',rule:'Rule 63.2',desc:'Ensure all parties can attend and are informed',
+   items:['Notify protestee of hearing time and place','Allow reasonable time to prepare','Identify if other boats may be affected — notify them too','Ask each party if they have witnesses','Inform parties they may have a representative','Post notice on official notice board if party cannot be found'],
+   warn:'If protestee cannot be found after reasonable attempts, document all attempts. Hearing may proceed in their absence (Rule 63.2).'},
+  {id:4,icon:'⚖️',title:'Open the Hearing',rule:'Rule 63.1',desc:'Formally open and establish scope',
+   items:['Confirm all parties present or accounted for','Introduce panel members by name','Ask parties if they have conflict of interest objections to panel members','Check panel members for conflicts of interest (see Definitions: Conflict of Interest)','Read the protest form aloud','State which rules are alleged to have been broken','Explain the procedure to the parties','Advise parties they will each have opportunity to present their case'],
+   warn:'If a party fails to appear after proper notice, hearing may proceed and party is bound by the decision (Rule 63.2).'},
+  {id:5,icon:'🔍',title:'Take Evidence',rule:'Rule 63.3',desc:'Hear all parties and witnesses fairly',
+   items:['Exclude witnesses (except parties) until their turn','Protestor presents account and may draw a diagram','Panel may question the protestor','Protestee presents account and may draw a diagram','Panel may question the protestee','Call witnesses — heard in presence of parties (Rule 63.3(a))','Parties may question each other\'s witnesses','Panel may recall any party or witness','Consider documents, videos or other evidence','Invite parties to make closing statements'],
+   warn:'PC may accept any evidence it considers relevant (Rule 63.3(b)). Conflicts in testimony must be resolved in findings of fact.'},
+  {id:6,icon:'📝',title:'Find the Facts',rule:'Rule 63.6',desc:'Deliberate privately — establish what happened',
+   items:['Excuse all parties and witnesses from deliberation','Panel discusses all evidence','Resolve conflicts — decide which evidence to accept','Draw an agreed diagram showing positions and movements','Determine: courses, speeds, distances, timing of key moments','Determine: when overlap established/broken, when zone reached','Record findings of fact clearly in writing','Ensure facts address all elements relevant to the rules in question'],
+   warn:'Facts must be based on evidence — not assumptions or speculation. If disputed, state which version the panel accepts and why.'},
+  {id:7,icon:'📖',title:'Apply the Rules',rule:'Rule 64.1',desc:'Apply the Racing Rules to your findings of fact',
+   items:['Identify which rules apply to the facts as found','Check all relevant definitions (Keep Clear, Mark-Room, Overlap, etc.)','Apply Part 2 right-of-way rules to determine obligations','Consider Rule 14 (Avoiding Contact) — applies to both boats','Consider Rule 15 (Acquiring ROW) and Rule 16 (Changing Course) if relevant','Check Casebook for cases with similar facts','Consider if exoneration applies: Rule 21 or Rule 43.1(c)','Determine: was a rule broken? By which boat?','Consider if any penalty was taken at the time (Rule 44)','Record which rules were broken and by whom'],
+   warn:'Rule 14 must be considered for every contact incident — it may apply even to the right-of-way boat. Use AI Assistant to find relevant cases.'},
+  {id:8,icon:'🏁',title:'Make the Decision',rule:'Rule 64',desc:'Reach decision and record it formally in writing',
+   items:['Decide: protest upheld or dismissed?','If upheld: state which boat broke which specific rule(s)','Consider exoneration under Rule 21 or Rule 43.1(c)','Determine penalty: DSQ, percentage scoring penalty, or other','Check if DSQ should be non-excludable (DNE) — Rule 69 cases','Record decision: facts found, rules applied, conclusion','Note any dissenting opinions with reasons','Ensure written decision is complete and self-explanatory'],
+   warn:'Decision must state: (1) facts found, (2) rules that apply, (3) conclusion. An incomplete decision may be grounds for reopening or appeal.'},
+  {id:9,icon:'📣',title:'Inform the Parties',rule:'Rule 65',desc:'Announce decision to all parties formally',
+   items:['Recall all parties to the hearing room','Announce: protest upheld or dismissed','State the key facts found','State which rules were applied and how','Advise of any penalty imposed','Advise of right to request reopening (Rule 66)','Advise of right to appeal under Rule 70 and Sail Canada prescriptions','Offer written decision if requested (Rule 65.1)'],
+   warn:'All parties, including those not present, must be informed (Rule 65.1). Parties have the right to know facts found and rules applied.'},
+  {id:10,icon:'📁',title:'Post-Hearing Actions',rule:'Rule 65.2',desc:'Complete all follow-up and documentation',
+   items:['Finalize and sign the written decision document','Notify race committee of any scoring change required (Rule 65.2)','File all protest documents and evidence','If RC or OA error found, consider redress for affected boats (Rule 62)','If gross misconduct suspected, consider Rule 69 referral','Consider if other boats may have broken a rule (Rule 60.4)','Ensure results board / notice board is updated'],
+   warn:'RC must be notified promptly so results can be adjusted. If a boat other than the protestee broke a rule, PC may protest that boat (Rule 60.4(c)).'}
+];
+
+var KEY_RULES = [
+  {num:'Rule 10',name:'Port & Starboard',s:'A port-tack boat shall keep clear of a starboard-tack boat.',part:'Part 2'},
+  {num:'Rule 11',name:'Windward & Leeward',s:'A windward boat shall keep clear of a leeward boat (same tack, overlapped).',part:'Part 2'},
+  {num:'Rule 12',name:'Astern & Clear Ahead',s:'A boat clear astern shall keep clear of a boat clear ahead (same tack, not overlapped).',part:'Part 2'},
+  {num:'Rule 13',name:'While Tacking',s:'After passing head to wind, keep clear until on a close-hauled course.',part:'Part 2'},
+  {num:'Rule 14',name:'Avoiding Contact',s:'Both boats shall avoid contact if reasonably possible. ROW boat exonerated unless damage or injury results.',part:'Part 2'},
+  {num:'Rule 15',name:'Acquiring Right of Way',s:'When acquiring ROW, initially give the other boat room to keep clear.',part:'Part 2'},
+  {num:'Rule 16',name:'Changing Course',s:'When changing course, give the keep-clear boat room to keep clear.',part:'Part 2'},
+  {num:'Rule 17',name:'Proper Course',s:'If a boat became overlapped to leeward within 2 lengths, she shall not sail above her proper course.',part:'Part 2'},
+  {num:'Rule 18',name:'Mark-Room',s:'Outside boat gives mark-room to inside overlapped boat. Zone is 3 hull lengths. Check overlap at zone entry.',part:'Part 2'},
+  {num:'Rule 19',name:'Room at Obstruction',s:'ROW boat may choose sides. Outside overlapped boat gives room at a continuing obstruction.',part:'Part 2'},
+  {num:'Rule 20',name:'Room to Tack',s:'A boat may hail for room to tack. Hailed boat shall tack promptly or give room.',part:'Part 2'},
+  {num:'Rule 21',name:'Exoneration',s:'Exonerated if a rule is broken because another boat failed to give entitled room.',part:'Part 2'},
+  {num:'Rule 31',name:'Touching a Mark',s:'A boat shall not touch a mark that begins, bounds or ends the leg she is racing.',part:'Part 3'},
+  {num:'Rule 42',name:'Propulsion',s:'Compete only by using wind and water. Pumping, rocking, ooching prohibited.',part:'Part 4'},
+  {num:'Rule 44',name:'Penalties at Incident',s:'Two-Turns or One-Turn Penalty to exonerate at the time of incident.',part:'Part 4'},
+  {num:'Rule 60',name:'Right to Protest',s:'A boat or committee may protest. Sets out who may protest and when.',part:'Part 5'},
+  {num:'Rule 61',name:'Initiating a Protest',s:"Hail 'Protest' + red flag at first opportunity. Written protest within time limit.",part:'Part 5'},
+  {num:'Rule 62',name:'Redress',s:'Request redress if score was made significantly worse through no fault of own.',part:'Part 5'},
+  {num:'Rule 63',name:'Hearings',s:"Parties' right to be present, evidence rules, validity of hearings, taking evidence.",part:'Part 5'},
+  {num:'Rule 64',name:'Decisions',s:'Decisions on protests and redress. Exoneration, penalties, and scoring changes.',part:'Part 5'},
+  {num:'Rule 65',name:'Informing Parties',s:'Inform of decision, facts found, and rules applied. Right to written decision.',part:'Part 5'},
+  {num:'Rule 66',name:'Reopening',s:'May reopen for significant new evidence or if there was an error in process.',part:'Part 5'},
+  {num:'Rule 69',name:'Misconduct',s:'Behaviour that brings sport into disrepute. Separate procedure, possible referral.',part:'Part 5'}
+];
+
+var SC_ITEMS = [
+  {rule:'Part 5 — Protests, Redress, Hearings',icon:'⚖️',hi:true,text:'No fee shall be charged for any procedure of the protest committee under Part 5 or Appendix T.',note:'CANNOT be changed by sailing instructions. Mandatory at all Canadian events.'},
+  {rule:'Rule 46 — Person in Charge',icon:'🧑‍✈️',hi:false,text:"The designated person in charge, if resident in Canada, shall be a member of Sail Canada through a club affiliated to Sail Canada or their Provincial Sailing Association.",note:'May be changed if IJ or no-appeal PC is appointed.'},
+  {rule:'Rule 65.1 — Legal Liability and Costs',icon:'💰',hi:true,text:'A boat found by a protest committee to have broken a rule and caused damage shall be considered at fault for the purposes of Rule 65.1.',note:'CANNOT be changed by SIs. Both required: rule broken AND damage caused.'},
+  {rule:'Rule 70.3(b) — Appeals',icon:'📬',hi:false,text:'Sail Canada so prescribes. Appeals and requests are made to Sail Canada.',note:'Submit to: appeals@sailing.ca'},
+  {rule:'Rule 88.2 — Changes to Prescriptions',icon:'🔒',hi:true,text:'Prescriptions to Part 5 and Rule 65.1 may NOT be changed or deleted. SIs may change other prescriptions only if IJ or no-appeal PC is appointed.',note:'Master rule governing which prescriptions can be modified.'},
+  {rule:'Rule 91(b) — International Jury',icon:'🌐',hi:false,text:'Written Sail Canada approval required before requesting a 3-member international jury under Rule N1.7.',note:'Contact: appeals@sailing.ca for prior written approval.'},
+  {rule:'Appendix R — Appeals Procedures',icon:'📮',hi:false,text:'Submit appeals to appeals@sailing.ca. Sail Canada may delegate to provincial appeals committees. Provincial decisions may be further appealed to Sail Canada.',note:"On further appeal: 'protest committee' becomes 'provincial appeals committee' throughout."}
+];
+
+var SYSTEM_PROMPT = 'You are an expert sailing judge assistant with comprehensive knowledge of the 2025-2028 Racing Rules of Sailing (RRS), World Sailing Case Book 2025-2028, and Sail Canada Prescriptions 2025-2028.\n\nSAIL CANADA PRESCRIPTIONS: No fee for any Part 5 procedure. Boat found to break rule AND cause damage is at fault (Rule 65.1). Appeals to appeals@sailing.ca. Part 5 prescriptions and Rule 65.1 CANNOT be changed by SIs. Written Sail Canada approval needed for 3-member IJ.\n\nRULES: Only answer from the 2025-2028 RRS and Case Book. Always cite rule numbers (e.g. Rule 61.2(a)) and case numbers (e.g. Case 31). Flag Sail Canada prescriptions when relevant. Be concise.\n\nKEY RULES: Rule 10 port/starboard. Rule 11 windward/leeward. Rule 12 astern/ahead. Rule 13 tacking. Rule 14 avoiding contact both boats. Rule 15 acquiring ROW. Rule 16 changing course. Rule 18 mark-room zone 3 lengths. Rule 21 exoneration. Rule 44 penalty turns. Rule 60.2(a)(1) hail+flag. Rule 60.3(a) written protest. Rule 63.2 parties present. Rule 63.3 witnesses. Rule 64.1 disqualify. Rule 65.1 inform parties. Rule 66 reopening.\n\nDEFINITIONS: Keep Clear, Mark-Room, Overlap, Clear Astern/Ahead, Zone, Proper Course, Tacking, Leeward/Windward, Obstruction.\n\nFORMAT: Direct answer first, cite rule numbers, reference cases, note Sail Canada prescription if applicable.';
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderPage(){
+  var pc = document.getElementById('pageContent');
+  var hb = document.getElementById('hearingBadge');
+  hb.style.display = hearingStarted ? 'block' : 'none';
+  if(activeTab==='home') pc.innerHTML = renderHome();
+  else if(activeTab==='wizard') pc.innerHTML = renderWizard();
+  else if(activeTab==='assistant') pc.innerHTML = renderAssistant();
+  else if(activeTab==='rules') pc.innerHTML = renderRules();
+  else if(activeTab==='canada') pc.innerHTML = renderCanada();
+  else if(activeTab==='log') pc.innerHTML = renderLog();
+  else if(activeTab==='decision') pc.innerHTML = renderDecision();
+  bindEvents();
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  return '<div class="page">'+
+  '<div style="text-align:center;padding:36px 0 24px">'+
+    '<div style="font-size:42px;font-weight:700;color:#e2d9c8;line-height:1.05;margin-bottom:10px">Judge with <em style="color:#b8841e;font-style:italic">Confidence</em></div>'+
+    '<div style="font-size:17px;font-style:italic;color:#7a96b4;margin-bottom:20px">Procedural guidance · Rule application · Casebook reference</div>'+
+    '<div style="display:inline-flex;align-items:center;gap:10px;background:rgba(184,132,30,.08);border:1px solid rgba(184,132,30,.3);border-radius:8px;padding:10px 20px;font-size:13px;color:#b8841e">📜 2025–2028 RRS · World Sailing Case Book · Sail Canada Prescriptions</div>'+
+  '</div>'+
+
+  '<div class="wia">'+
+    '<div class="wia-hdr"><span style="font-size:24px">📋</span><div><div style="font-size:20px;font-weight:700;color:#e2d9c8">What\'s in the App</div><div style="font-size:13px;color:#7a96b4;margin-top:2px">Sailing Judge Assistant · Created by John Golding · Version 1.0 (2025)</div></div></div>'+
+    '<div class="wia-body">'+
+
+      '<div class="free-badge">✓ FREE — NO API KEY NEEDED</div>'+
+      '<div class="mini-grid">'+
+        '<div class="mini-card" onclick="goTab(\'wizard\')"><div style="font-size:24px;margin-bottom:8px">⚖️</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Hearing Wizard</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">10-step procedural guide with checklists, rule citations and warnings. From protest receipt to informing the parties.</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'rules\')"><div style="font-size:24px;margin-bottom:8px">📖</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Rules Reference</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">23 key rule cards across Parts 2–5. Tap any card to pre-fill an AI question (API key needed for the AI answer).</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'canada\')"><div style="font-size:24px;margin-bottom:8px">🍁</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Sail Canada Prescriptions</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Complete 2025–2028 prescriptions with mandatory/optional flags. Fees, liability, appeals, and what SIs can and cannot change.</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'log\')"><div style="font-size:24px;margin-bottom:8px">🗂️</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Hearing Log</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Save a record for every hearing: parties, incident, outcome, facts and rules. Pre-fills the Decision Form automatically.</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'decision\')"><div style="font-size:24px;margin-bottom:8px">🖨️</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Decision Form</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Fill in and print an official formatted decision. Findings of fact, rules applied, outcome, penalties, right-to-appeal notice, signature lines.</div></div>'+
+      '</div>'+
+
+      '<div class="divider"></div>'+
+
+      '<div class="api-badge">🔑 REQUIRES ANTHROPIC API KEY</div>'+
+      '<div class="ai-card" onclick="goTab(\'assistant\')">'+
+        '<div style="display:flex;gap:14px;align-items:flex-start">'+
+          '<div style="font-size:32px;flex-shrink:0">🤖</div>'+
+          '<div>'+
+            '<div style="font-size:17px;font-weight:700;color:#e2d9c8;margin-bottom:6px">AI Rule &amp; Case Assistant</div>'+
+            '<div style="font-size:14px;color:#c0d0e4;line-height:1.65;margin-bottom:10px">Ask any question in plain English about a rule, incident, or procedure. The AI answers as an expert judge, citing specific rule numbers (e.g. Rule 18.2(a)(1)) and case numbers (e.g. Case 31). It knows all 150 World Sailing cases and all Sail Canada prescriptions.</div>'+
+            '<div style="font-size:13px;color:#7a96b4"><strong style="color:#b8841e">Example questions:</strong> "Was the protest valid if no flag was shown?" · "How does Rule 18 apply at a windward mark?" · "When does exoneration apply under Rule 21?" · "What Casebook cases deal with Rule 16?"</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="divider"></div>'+
+
+      '<div style="font-size:16px;font-weight:700;color:#e2d9c8;margin-bottom:14px">💰 API Key — Cost &amp; Setup</div>'+
+      '<div class="cost-grid">'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">🆓</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Free to Start</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Anthropic gives every new account US$5 free credit — enough for 100–500 queries. No credit card needed to register.</div></div>'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">💵</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Cost Per Question</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Approximately $0.01–$0.05 per question (1–5 cents Canadian). A typical hearing consultation of 5–10 questions costs under $0.25.</div></div>'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">🗓️</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Cost Per Regatta</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">A full weekend with heavy use (50+ queries across all hearings) typically costs $2–5 total. Light use is well under $1.</div></div>'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">🔒</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Your Key, Your Control</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Set a monthly spending cap at console.anthropic.com → Settings → Limits. You will never be charged more than you set.</div></div>'+
+      '</div>'+
+      '<div style="background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:#c0d0e4;line-height:1.7">'+
+        '<strong style="color:#b8841e">How to get an API key:</strong> Go to <a href="https://console.anthropic.com" target="_blank" style="color:#b8841e">console.anthropic.com</a> → sign up free → click <strong>API Keys</strong> in the left menu → click <strong>Create Key</strong> → copy the key (starts with <code style="background:#08111f;padding:1px 6px;border-radius:4px;font-size:12px">sk-ant-</code>) → paste it into the AI Assistant tab when prompted. The app stores it in your browser — you only enter it once per device.'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="share-box">'+
+    '<div style="font-size:28px">🔗</div>'+
+    '<div style="flex:1">'+
+      '<div style="font-size:17px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Share This App</div>'+
+      '<div style="font-size:14px;color:#7a96b4;margin-bottom:10px">Send this link to other judges. Opens in any browser — no download, no installation.</div>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'+
+        '<code class="share-url">https://sailing416-ship-it.github.io/sailing-judge/</code>'+
+        '<button class="copy-btn" onclick="copyLink()">Copy Link</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="disc"><div class="disc-t">⚠️ Important Notice</div><div class="disc-b">This tool provides procedural guidance based on the official 2025–2028 Racing Rules of Sailing, World Sailing Case Book, and Sail Canada Prescriptions. It is an aid to trained judges — not a replacement for experience, qualification, or judicial discretion. All decisions remain the responsibility of the protest committee.</div></div>'+
+  '</div>';
+}
+
+function copyLink(){
+  var url='https://sailing416-ship-it.github.io/sailing-judge/';
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){alert('Link copied!');});}
+  else{alert(url);}
+}
+
+// ── WIZARD ────────────────────────────────────────────────────────────────────
+function renderWizard(){
+  if(!hearingStarted){
+    return '<div class="page"><div class="start-screen">'+
+      '<div style="font-size:64px;margin-bottom:20px">⚖️</div>'+
+      '<div style="font-size:30px;font-weight:700;color:#e2d9c8;margin-bottom:12px">Protest Hearing Wizard</div>'+
+      '<div style="font-size:16px;color:#7a96b4;max-width:400px;margin:0 auto 32px;line-height:1.7">Step-by-step procedural guide through a complete protest hearing — from receipt of protest to informing the parties.</div>'+
+      '<button class="btn btn-gold" style="font-size:17px;padding:14px 36px" onclick="startHearing()">Begin New Hearing →</button>'+
+    '</div></div>';
+  }
+  var s = STEPS[hearingStep];
+  var done = stepDone(s.id, s.items.length);
+  var prog = Math.round((hearingStep/(STEPS.length-1))*100);
+  var totalChk = Object.values(checkedItems).filter(Boolean).length;
+  var dots = STEPS.map(function(st,i){
+    var d = stepDone(st.id,st.items.length)===st.items.length;
+    var cls = 'sdot'+(i===hearingStep?' cur':d?' done':'');
+    return '<div class="'+cls+'" onclick="gotoStep('+i+')" title="'+st.title+'">'+(d?'✓':(i+1))+'</div>';
+  }).join('');
+  var items = s.items.map(function(item,idx){
+    var k=s.id+'-'+idx, on=!!checkedItems[k];
+    return '<div class="cl-item" onclick="toggleCheck(\''+k+'\')">'+
+      '<div class="chk'+(on?' on':'')+'">'+( on?'<span style="color:white;font-size:13px;font-weight:bold">✓</span>':'')+'</div>'+
+      '<div class="cl-txt'+(on?' on':'')+'">'+esc(item)+'</div>'+
+    '</div>';
+  }).join('');
+  var warn = s.warn?'<div class="warn"><span style="font-size:18px;flex-shrink:0">⚠️</span><div class="warn-txt">'+esc(s.warn)+'</div></div>':'';
+  var nextBtn = hearingStep<STEPS.length-1
+    ? '<button class="btn btn-gold" onclick="gotoStep('+(hearingStep+1)+')">Next Step →</button>'
+    : '<button class="btn btn-green" onclick="endHearing()">✓ Complete Hearing</button>';
+
+  return '<div class="page">'+
+    '<div class="prog-wrap">'+
+      '<div class="prog-meta"><span>Step '+(hearingStep+1)+' of '+STEPS.length+'</span><span>'+totalChk+' items checked</span></div>'+
+      '<div class="prog-track"><div class="prog-fill" style="width:'+prog+'%"></div></div>'+
+      '<div class="sdots">'+dots+'</div>'+
+    '</div>'+
+    '<div class="step-card">'+
+      '<div class="step-top"><div class="step-icon">'+s.icon+'</div><div>'+
+        '<div class="step-lbl">Step '+(hearingStep+1)+' of '+STEPS.length+' · '+s.rule+'</div>'+
+        '<div class="step-h">'+esc(s.title)+'</div>'+
+        '<div class="step-sub">'+esc(s.desc)+'</div>'+
+      '</div></div>'+
+      '<div class="step-body">'+items+warn+'</div>'+
+      '<div class="step-foot"><div class="step-cnt">'+done+' / '+s.items.length+' checked</div>'+
+        '<button class="ai-hint" onclick="askAIStep()">Ask AI about this step →</button>'+
+      '</div>'+
+      '<div class="step-nav">'+
+        '<button class="btn btn-ghost" onclick="gotoStep('+(hearingStep-1)+')" '+(hearingStep===0?'disabled':'')+'>← Previous</button>'+
+        nextBtn+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function startHearing(){hearingStarted=true;hearingStep=0;renderNav();renderPage();}
+function endHearing(){hearingStarted=false;hearingStep=0;checkedItems={};renderNav();renderPage();}
+function gotoStep(i){if(i<0||i>=STEPS.length)return;hearingStep=i;renderPage();}
+function toggleCheck(k){checkedItems[k]=!checkedItems[k];renderPage();}
+function stepDone(sid,len){var n=0;for(var i=0;i<len;i++)if(checkedItems[sid+'-'+i])n++;return n;}
+function askAIStep(){
+  var s=STEPS[hearingStep];
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta){ta.value='I am on Step '+(hearingStep+1)+': "'+s.title+'". Please give detailed guidance on this step, citing the specific rules that apply.';}
+  },100);
+}
+
+// ── ASSISTANT ─────────────────────────────────────────────────────────────────
+function renderAssistant(){
+  var msgs = chatMessages.map(function(m){
+    var usr = m.role==='user';
+    return '<div class="msg'+(usr?' usr':'')+'">'+
+      '<div class="av '+(usr?'usr':'ai')+'">'+(usr?'👤':'⚓')+'</div>'+
+      '<div class="bubble '+(usr?'usr':'ai')+'">'+esc(m.content)+'</div>'+
+    '</div>';
+  }).join('');
+  if(chatLoading) msgs+='<div class="msg"><div class="av ai">⚓</div><div class="bubble ai"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>';
+  var qs = chatMessages.length<=1 ? ['Flag not shown — is the protest valid?','Both boats made contact. How does Rule 14 apply?','What does the Casebook say about mark-room?','Protestee failed to appear. Can we proceed?','Explain Rule 18.2 and the zone','What cases relate to Rule 16?','When does exoneration under Rule 21 apply?','What is the procedure for a redress hearing?','What do Sail Canada prescriptions say about appeals?','Can a protest committee charge a fee in Canada?'].map(function(q){return '<div class="qq" onclick="sendQ(\''+esc(q)+'\')">'+esc(q)+'</div>';}).join('') : '';
+
+  return '<div class="page"><div class="chat-wrap">'+
+    '<div class="chat-msgs" id="chatMsgs">'+msgs+'</div>'+
+    (qs?'<div class="quick-qs">'+qs+'</div>':'')+
+    '<div class="chat-input-row">'+
+      '<textarea class="chat-ta" id="chatInput" rows="2" placeholder="Ask about a rule, procedure, or describe an incident... (Enter to send, Shift+Enter for new line)"></textarea>'+
+      '<button class="send-btn" id="sendBtn" onclick="sendChat()" '+(chatLoading?'disabled':'')+'>➤</button>'+
+    '</div>'+
+  '</div></div>';
+}
+
+function bindEvents(){
+  if(activeTab==='assistant'){
+    var ta = document.getElementById('chatInput');
+    if(ta) ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
+    scrollChat();
+  }
+  if(activeTab==='rules'){
+    var rs = document.getElementById('rulesSearchInput');
+    if(rs) rs.addEventListener('input',function(){rulesSearch=this.value;renderPage();});
+  }
+}
+
+function scrollChat(){setTimeout(function(){var c=document.getElementById('chatMsgs');if(c)c.scrollTop=c.scrollHeight;},50);}
+
+function sendQ(q){
+  var ta=document.getElementById('chatInput');
+  if(ta)ta.value=q;
+  sendChat();
+}
+
+async function sendChat(){
+  var ta=document.getElementById('chatInput');
+  var text=(ta?ta.value:'').trim();
+  if(!text||chatLoading)return;
+  chatMessages.push({role:'user',content:text});
+  if(ta)ta.value='';
+  chatLoading=true;
+  renderPage();
+  try{
+    var resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':API_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-calls':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:SYSTEM_PROMPT,messages:chatMessages.map(function(m){return{role:m.role,content:m.content};})})
+    });
+    var d = await resp.json();
+    chatMessages.push({role:'assistant',content:(d.content&&d.content[0]&&d.content[0].text)||'Error — please try again.'});
+  }catch(e){
+    chatMessages.push({role:'assistant',content:'Connection error. Check your API key and internet connection.'});
+  }
+  chatLoading=false;
+  renderPage();
+}
+
+// ── RULES ─────────────────────────────────────────────────────────────────────
+function renderRules(){
+  var filtered = KEY_RULES.filter(function(r){
+    var q=rulesSearch.toLowerCase();
+    return !q||r.num.toLowerCase().includes(q)||r.name.toLowerCase().includes(q)||r.s.toLowerCase().includes(q);
+  });
+  var parts=['Part 2','Part 3','Part 4','Part 5'];
+  var partNames={'Part 2':'When Boats Meet','Part 3':'Conduct of a Race','Part 4':'Other Requirements','Part 5':'Protests, Redress & Hearings'};
+  var html='<div class="page"><input class="rules-search" id="rulesSearchInput" placeholder="Search rules by number or keyword..." value="'+esc(rulesSearch)+'">';
+  parts.forEach(function(p){
+    var rules=filtered.filter(function(r){return r.part===p;});
+    if(!rules.length)return;
+    html+='<div class="sec-title">'+p+' — '+partNames[p]+'</div><div class="rules-grid">';
+    rules.forEach(function(r){
+      html+='<div class="rc" onclick="askRule(\''+esc(r.num)+'\',\''+esc(r.name)+'\')">'+
+        '<div class="rnum">'+r.num+'</div>'+
+        '<div class="rname">'+r.name+'</div>'+
+        '<div class="rsum">'+esc(r.s)+'</div>'+
+        '<div class="rtap">Tap to get AI guidance + case references →</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  });
+  return html+'</div>';
+}
+
+function askRule(num,name){
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta){ta.value='Explain '+num+' — '+name+' in detail. Cite the exact rule text, relevant definitions, and the most important Casebook cases that illustrate how this rule is applied.';}
+  },100);
+}
+
+// ── SAIL CANADA ───────────────────────────────────────────────────────────────
+function renderCanada(){
+  var cards = SC_ITEMS.map(function(item){
+    var bg=item.hi?'linear-gradient(135deg,#1a2a0a,#0d1e05)':'linear-gradient(135deg,#0d1e35,#0a1828)';
+    var border=item.hi?'rgba(80,140,30,.4)':'#1a3050';
+    var bleft=item.hi?'#5a9e1a':'#b8841e';
+    var rc=item.hi?'#8ece3a':'#b8841e';
+    var note=item.note?'<div class="sc-note">ℹ️ '+esc(item.note)+'</div>':'';
+    return '<div class="sc-card" style="background:'+bg+';border:1px solid '+border+';border-left:4px solid '+bleft+'">'+
+      '<span style="font-size:22px;flex-shrink:0">'+item.icon+'</span>'+
+      '<div style="flex:1"><div class="sc-rule" style="color:'+rc+'">'+esc(item.rule)+'</div>'+
+      '<div class="sc-text">'+esc(item.text)+'</div>'+note+'</div></div>';
+  }).join('');
+  return '<div class="page">'+
+    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap">'+
+      '<div style="font-size:44px">🍁</div>'+
+      '<div><div style="font-size:26px;font-weight:700;color:#e2d9c8">Sail Canada Prescriptions</div>'+
+      '<div style="font-size:12px;color:#b8841e;letter-spacing:.1em;text-transform:uppercase;margin-top:4px">2025–2028 · Applicable to all Canadian events</div></div>'+
+    '</div>'+
+    '<div style="background:rgba(196,30,30,.08);border:1px solid rgba(196,30,30,.25);border-left:4px solid #c43030;border-radius:10px;padding:14px 20px;margin-bottom:20px;font-size:14px;color:#d08080;line-height:1.7">'+
+      '⚠️ <strong>Mandatory at all Canadian events.</strong> Prescriptions to Part 5 and Rule 65.1 cannot be changed or deleted by sailing instructions — even when an international jury is appointed (Rule 88.2).'+
+    '</div>'+
+    cards+
+    '<div style="background:#0a1828;border:1px solid #1a3050;border-radius:12px;padding:20px 24px;margin-top:8px">'+
+      '<div style="font-size:16px;font-weight:700;color:#b8841e;margin-bottom:10px">📬 Sail Canada Appeals Contact</div>'+
+      '<div style="font-size:15px;color:#c0d0e4;line-height:1.8">All appeals and requests:<br><strong style="color:#e2d9c8">appeals@sailing.ca</strong><br><span style="font-size:13px;color:#7a96b4">Provincial decisions may be further appealed to Sail Canada.</span></div>'+
+      '<button class="btn btn-ghost" style="margin-top:14px;font-size:13px" onclick="askCanada()">Ask AI to explain key prescriptions →</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function askCanada(){
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta)ta.value='Explain the Sail Canada prescriptions most important for a protest committee judge, especially those that cannot be changed by sailing instructions.';
+  },100);
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function renderLog(){
+  var form='';
+  if(showLogForm){
+    var fields=[['Date','date','date'],['Event','event','text'],['Protest No.','protestNo','text'],['Protestor','protestor','text'],['Protestee','protestee','text'],['Incident Time','incidentTime','text'],['Incident Location','incidentLocation','text'],['Rules Alleged','rulesAlleged','text'],['Panel Chair','chair','text'],['Panel Members','members','text'],['Outcome','outcome','text'],['Penalty','penalty','text']];
+    var finputs=fields.map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><input class="fi" type="'+f[2]+'" id="lf_'+f[1]+'" value="'+esc(logForm[f[1]]||'')+'" onchange="lfSet(\''+f[1]+'\',this.value)"></div>';}).join('');
+    var tareas=[['Findings of Fact','facts'],['Rules Applied','rules'],['Notes','notes']].map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><textarea class="fi" rows="3" id="lf_'+f[1]+'" onchange="lfSet(\''+f[1]+'\',this.value)" style="resize:vertical">'+esc(logForm[f[1]]||'')+'</textarea></div>';}).join('');
+    form='<div style="background:#0d1e35;border:1px solid #b8841e;border-radius:16px;padding:22px;margin-bottom:20px">'+
+      '<div style="font-size:18px;font-weight:700;color:#e2d9c8;margin-bottom:16px">'+(editingLogId?'Edit Record':'New Hearing Record')+'</div>'+
+      '<div class="form-grid">'+finputs+'</div>'+tareas+
+      '<div style="display:flex;gap:12px;margin-top:8px">'+
+        '<button class="btn btn-gold" onclick="saveLog()">💾 Save Record</button>'+
+        '<button class="btn btn-ghost" onclick="cancelLog()">Cancel</button>'+
+      '</div></div>';
+  }
+  var entries = hearingLogs.length===0&&!showLogForm
+    ? '<div style="text-align:center;padding:50px 20px;color:#3a5878;font-style:italic">No hearing records yet. Click "+ New Record" to log your first hearing.</div>'
+    : hearingLogs.map(function(l){
+        var outcomeColor=l.outcome&&(l.outcome.toLowerCase().includes('uphold')||l.outcome.toLowerCase().includes('dsq'))?'#c05030':l.outcome&&l.outcome.toLowerCase().includes('dismiss')?'#4a9e5a':'#e2d9c8';
+        return '<div class="log-entry">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">'+
+            '<div style="flex:1">'+
+              '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'+
+                (l.protestNo?'<span style="background:rgba(184,132,30,.15);color:#b8841e;font-size:12px;font-weight:700;padding:2px 10px;border-radius:4px">#'+esc(l.protestNo)+'</span>':'')+
+                '<span class="log-vs">'+(l.protestor||'—')+' <span style="color:#7a96b4;font-weight:400">vs</span> '+(l.protestee||'—')+'</span>'+
+              '</div>'+
+              '<div class="log-meta">'+
+                (l.event?'<span>📅 '+esc(l.event)+'</span>':'')+
+                (l.date?'<span>🗓 '+esc(l.date)+'</span>':'')+
+                (l.incidentLocation?'<span>📍 '+esc(l.incidentLocation)+'</span>':'')+
+                (l.rulesAlleged?'<span>📖 '+esc(l.rulesAlleged)+'</span>':'')+
+              '</div>'+
+              (l.outcome?'<div style="margin-top:7px;font-size:14px"><span style="color:#7a96b4">Outcome: </span><span style="color:'+outcomeColor+';font-weight:600">'+esc(l.outcome)+'</span>'+(l.penalty?'<span style="color:#7a96b4"> · Penalty: '+esc(l.penalty)+'</span>':'')+'</div>':'')+
+            '</div>'+
+            '<div class="log-btns">'+
+              '<button class="log-btn" onclick="logToDecision('+l.id+')">🖨 Decision</button>'+
+              '<button class="log-btn" onclick="editLog('+l.id+')">✏️ Edit</button>'+
+              '<button class="log-btn del" onclick="deleteLog('+l.id+')">🗑</button>'+
+            '</div>'+
+          '</div></div>';
+      }).join('');
+
+  return '<div class="page">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">'+
+      '<div style="font-size:24px;font-weight:700;color:#e2d9c8">🗂️ Hearing Log</div>'+
+      '<button class="btn btn-gold" onclick="newLog()">+ New Record</button>'+
+    '</div>'+form+entries+
+    (hearingLogs.length>0?'<div style="margin-top:14px;font-size:12px;color:#3a5878;text-align:center">'+hearingLogs.length+' record'+(hearingLogs.length!==1?'s':'')+' saved this session</div>':'')+
+  '</div>';
+}
+
+function lfSet(f,v){logForm[f]=v;}
+function newLog(){showLogForm=true;editingLogId=null;logForm={date:today(),event:'',protestNo:'',protestor:'',protestee:'',incidentTime:'',incidentLocation:'',rulesAlleged:'',outcome:'',penalty:'',facts:'',rules:'',notes:'',chair:'',members:''};renderPage();}
+function cancelLog(){showLogForm=false;editingLogId=null;renderPage();}
+function saveLog(){
+  var entry=Object.assign({},logForm,{id:editingLogId||Date.now()});
+  // read textarea values directly from DOM before saving
+  ['facts','rules','notes'].forEach(function(f){var el=document.getElementById('lf_'+f);if(el)entry[f]=el.value;});
+  if(editingLogId){hearingLogs=hearingLogs.map(function(l){return l.id===editingLogId?entry:l;});}
+  else{hearingLogs.unshift(entry);}
+  showLogForm=false;editingLogId=null;renderPage();
+}
+function editLog(id){var l=hearingLogs.find(function(x){return x.id===id;});if(!l)return;logForm=Object.assign({},l);editingLogId=id;showLogForm=true;renderPage();}
+function deleteLog(id){if(!confirm('Delete this hearing record?'))return;hearingLogs=hearingLogs.filter(function(l){return l.id!==id;});renderPage();}
+function logToDecision(id){
+  var l=hearingLogs.find(function(x){return x.id===id;});if(!l)return;
+  decForm={date:l.date||today(),event:l.event||'',protestNo:l.protestNo||'',protestor:l.protestor||'',protestee:l.protestee||'',incidentTime:l.incidentTime||'',incidentLocation:l.incidentLocation||'',rulesAlleged:l.rulesAlleged||'',hearingDate:l.date||today(),parties:'',validity:'valid',facts:l.facts||'',rules:l.rules||'',cases:'',exoneration:'',decision:l.outcome&&l.outcome.toLowerCase().includes('dismiss')?'dismissed':'upheld',penalty:l.penalty||'',notes:l.notes||'',chair:l.chair||'',members:l.members||'',appeal:true};
+  activeTab='decision';renderNav();renderPage();
+}
+
+// ── DECISION ──────────────────────────────────────────────────────────────────
+function renderDecision(){
+  var fields=[['Event','event','text'],['Protest No.','protestNo','text'],['Date of Incident','date','date'],['Hearing Date','hearingDate','date'],['Protestor','protestor','text'],['Protestee','protestee','text'],['Incident Time','incidentTime','text'],['Incident Location','incidentLocation','text'],['Rules Alleged','rulesAlleged','text'],['Panel Chair','chair','text']];
+  var finputs=fields.map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><input class="fi" type="'+f[2]+'" id="df_'+f[1]+'" value="'+esc(decForm[f[1]]||'')+'" onchange="dfSet(\''+f[1]+'\',this.value)"></div>';}).join('');
+  var tareas=[['Panel Members (all names)','members'],['Parties Present','parties'],['Findings of Fact','facts'],['Rules Applied (with reasoning)','rules'],['Casebook Cases Considered','cases'],['Exoneration (if applicable)','exoneration'],['Additional Notes','notes']].map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><textarea class="fi" rows="'+(f[1]==='facts'||f[1]==='rules'?5:3)+'" id="df_'+f[1]+'" onchange="dfSet(\''+f[1]+'\',this.value)" style="resize:vertical">'+esc(decForm[f[1]]||'')+'</textarea></div>';}).join('');
+
+  return '<div class="page">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">'+
+      '<div style="font-size:24px;font-weight:700;color:#e2d9c8">🖨️ Decision Form</div>'+
+      '<button class="btn btn-gold" style="font-size:15px;padding:12px 26px" onclick="printDecision()">🖨️ Print / Save PDF</button>'+
+    '</div>'+
+    '<div style="background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.25);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:14px;color:#b8841e">Fill in all fields then click Print / Save PDF to generate the official formatted decision document.</div>'+
+    '<div class="form-grid">'+finputs+'</div>'+tareas+
+    '<div class="form-grid" style="margin-bottom:16px">'+
+      '<div class="fg"><div class="fl">Protest Validity</div><select class="fi" id="df_validity" onchange="dfSet(\'validity\',this.value)"><option value="valid"'+(decForm.validity==='valid'?' selected':'')+'>Valid</option><option value="invalid"'+(decForm.validity==='invalid'?' selected':'')+'>Invalid — Dismissed</option></select></div>'+
+      '<div class="fg"><div class="fl">Decision</div><select class="fi" id="df_decision" onchange="dfSet(\'decision\',this.value)"><option value="upheld"'+(decForm.decision==='upheld'?' selected':'')+'>Protest Upheld</option><option value="dismissed"'+(decForm.decision==='dismissed'?' selected':'')+'>Protest Dismissed</option><option value="redress"'+(decForm.decision==='redress'?' selected':'')+'>Redress Granted</option><option value="redress-denied"'+(decForm.decision==='redress-denied'?' selected':'')+'>Redress Denied</option></select></div>'+
+      '<div class="fg"><div class="fl">Penalty Imposed</div><input class="fi" type="text" id="df_penalty" value="'+esc(decForm.penalty||'')+'" placeholder="e.g. DSQ, 20% scoring penalty" onchange="dfSet(\'penalty\',this.value)"></div>'+
+      '<div class="fg" style="display:flex;align-items:center;gap:10px;padding-top:22px"><input type="checkbox" id="df_appeal" '+(decForm.appeal?'checked':'')+' onchange="dfSet(\'appeal\',this.checked)" style="width:18px;height:18px;accent-color:#b8841e;cursor:pointer"><label for="df_appeal" style="font-size:14px;color:#c0d0e4;cursor:pointer">Include right to appeal notice (Rule 66/70)</label></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px">'+
+      '<button class="btn btn-gold" style="font-size:15px;padding:14px 32px" onclick="printDecision()">🖨️ Print / Save as PDF</button>'+
+      '<button class="btn btn-ghost" onclick="decisionToLog()">💾 Save to Hearing Log</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function dfSet(f,v){
+  // read all current DOM values first
+  ['event','protestNo','date','hearingDate','protestor','protestee','incidentTime','incidentLocation','rulesAlleged','chair','members','parties','facts','rules','cases','exoneration','notes','penalty','validity','decision'].forEach(function(k){
+    var el=document.getElementById('df_'+k);if(el)decForm[k]=el.value;
+  });
+  var ap=document.getElementById('df_appeal');if(ap)decForm.appeal=ap.checked;
+  decForm[f]=v;
+}
+
+function syncDecForm(){
+  ['event','protestNo','date','hearingDate','protestor','protestee','incidentTime','incidentLocation','rulesAlleged','chair','members','parties','facts','rules','cases','exoneration','notes','penalty','validity','decision'].forEach(function(k){
+    var el=document.getElementById('df_'+k);if(el)decForm[k]=el.value;
+  });
+  var ap=document.getElementById('df_appeal');if(ap)decForm.appeal=ap.checked;
+}
+
+function decisionToLog(){
+  syncDecForm();
+  hearingLogs.unshift({id:Date.now(),date:decForm.date,event:decForm.event,protestNo:decForm.protestNo,protestor:decForm.protestor,protestee:decForm.protestee,incidentTime:decForm.incidentTime,incidentLocation:decForm.incidentLocation,rulesAlleged:decForm.rulesAlleged,outcome:decForm.decision==='upheld'?'Upheld':decForm.decision==='dismissed'?'Dismissed':'See notes',penalty:decForm.penalty,facts:decForm.facts,rules:decForm.rules,notes:decForm.notes,chair:decForm.chair,members:decForm.members});
+  activeTab='log';renderNav();renderPage();
+}
+
+function printDecision(){
+  syncDecForm();
+  var d=decForm;
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>Decision — '+(d.protestNo||'Draft')+'</title>'+
+  '<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;color:#1a1a1a;font-size:13pt;line-height:1.6}'+
+  '.hdr{border-bottom:3px double #333;padding-bottom:16px;margin-bottom:24px}.title{text-align:center;font-size:18pt;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:12px 0}'+
+  '.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #999;margin:20px 0}.cell{padding:8px 12px;border-bottom:1px solid #ddd;border-right:1px solid #ddd}.cell:nth-child(even){border-right:none}'+
+  '.lbl{font-size:9pt;text-transform:uppercase;letter-spacing:.08em;color:#666;display:block;margin-bottom:2px}.val{font-weight:600}'+
+  '.sec{margin:20px 0}.sec-t{font-size:12pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #999;padding-bottom:4px;margin-bottom:10px}.body{min-height:60px;white-space:pre-wrap}'+
+  '.outcome{border:2px solid #1a1a1a;padding:14px 20px;margin:20px 0}.out-lbl{font-size:10pt;text-transform:uppercase;letter-spacing:.1em;color:#555}.out-val{font-size:16pt;font-weight:700;margin-top:4px}'+
+  '.sigs{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px}.sig{border-top:1px solid #333;padding-top:6px;font-size:10pt;color:#555}'+
+  '.appeal{background:#f5f5f5;border-left:4px solid #999;padding:10px 14px;margin:20px 0;font-size:11pt}'+
+  '.ft{margin-top:40px;padding-top:12px;border-top:1px solid #ccc;font-size:9pt;color:#888;text-align:center}'+
+  '@media print{button{display:none}}</style></head><body>'+
+  '<div class="hdr"><div style="display:flex;justify-content:space-between"><div><div style="font-size:16pt;font-weight:700">⚓ Protest Committee</div><div style="color:#666;font-size:10pt">2025–2028 Racing Rules of Sailing</div></div><div style="text-align:right;font-size:10pt">Protest No: <strong>'+(d.protestNo||'______')+'</strong><br>Date: '+d.date+'</div></div><div class="title">Hearing Decision</div></div>'+
+  '<div class="grid">'+
+  '<div class="cell"><span class="lbl">Event</span><span class="val">'+(d.event||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Hearing Date</span><span class="val">'+(d.hearingDate||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Protestor</span><span class="val">'+(d.protestor||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Protestee</span><span class="val">'+(d.protestee||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Incident Time</span><span class="val">'+(d.incidentTime||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Location</span><span class="val">'+(d.incidentLocation||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Rules Alleged</span><span class="val">'+(d.rulesAlleged||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Validity</span><span class="val">'+(d.validity==='valid'?'Valid':'Invalid — Dismissed')+'</span></div>'+
+  '</div>'+
+  '<div class="sec"><div class="sec-t">Parties Present</div><div class="body">'+(d.parties||'—')+'</div></div>'+
+  '<div class="sec"><div class="sec-t">Findings of Fact</div><div class="body">'+(d.facts||'—')+'</div></div>'+
+  '<div class="sec"><div class="sec-t">Rules Applied</div><div class="body">'+(d.rules||'—')+'</div></div>'+
+  (d.cases?'<div class="sec"><div class="sec-t">Casebook Cases Considered</div><div class="body">'+d.cases+'</div></div>':'')+
+  (d.exoneration?'<div class="sec"><div class="sec-t">Exoneration</div><div class="body">'+d.exoneration+'</div></div>':'')+
+  '<div class="outcome"><div class="out-lbl">Decision</div><div class="out-val">'+(d.decision==='upheld'?'PROTEST UPHELD':d.decision==='dismissed'?'PROTEST DISMISSED':d.decision==='redress'?'REDRESS GRANTED':'REDRESS DENIED')+'</div>'+(d.penalty?'<div style="margin-top:8px"><strong>Penalty:</strong> '+d.penalty+'</div>':'')+'</div>'+
+  (d.notes?'<div class="sec"><div class="sec-t">Additional Notes</div><div class="body">'+d.notes+'</div></div>':'')+
+  (d.appeal?'<div class="appeal">⚖️ <strong>Right to Appeal:</strong> Parties may request reopening under Rule 66, or appeal under Rule 70 and Sail Canada procedures. Appeals: appeals@sailing.ca</div>':'')+
+  '<div class="sigs"><div><div class="sig">Chair of Protest Committee</div><div style="margin-top:4px">'+(d.chair||'______________________________')+'</div></div><div><div class="sig">Panel Members</div><div style="margin-top:4px">'+(d.members||'______________________________')+'</div></div></div>'+
+  '<div class="ft">Sailing Judge Assistant · © 2025 John Golding · All rights reserved<br>RRS © World Sailing Limited 2025 · Sail Canada Prescriptions © Sail Canada 2025 · Guidance only</div>'+
+  '<script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.close();
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(s){
+  if(!s)return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>
