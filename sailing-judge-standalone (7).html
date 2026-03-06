@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sailing Judge Assistant — John Golding</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#08111f;color:#e2d9c8;font-family:Georgia,serif}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#08111f}::-webkit-scrollbar-thumb{background:#b8841e;border-radius:3px}
+
+/* LAUNCH SCREEN */
+#launch{min-height:100vh;background:#08111f;display:flex;align-items:center;justify-content:center;padding:24px}
+.lcard{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #b8841e;border-radius:20px;padding:44px;max-width:520px;width:100%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.6)}
+.lseal{width:72px;height:72px;margin:0 auto 20px;background:radial-gradient(circle,#d4a030,#b8841e,#8a6010);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;box-shadow:0 0 30px rgba(184,132,30,.5)}
+.ltitle{font-size:28px;font-weight:700;color:#e2d9c8;margin-bottom:6px}
+.lsub{font-size:14px;font-style:italic;color:#b8841e;margin-bottom:4px}
+.ledition{font-size:11px;color:#5a7898;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.lurl{font-size:12px;color:#3a5878;margin-bottom:24px}
+.ldiv{height:1px;background:#1a3050;margin:0 0 20px}
+.llabel{font-size:11px;color:#7a96b4;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;text-align:left}
+.linput{width:100%;background:#08111f;border:1px solid #2a4870;border-radius:10px;padding:13px 16px;font-family:Georgia,serif;font-size:15px;color:#e2d9c8;outline:none;margin-bottom:8px}
+.linput:focus{border-color:#b8841e}
+.lerr{color:#c05030;font-size:13px;margin-bottom:10px;text-align:left}
+.lbtn{width:100%;background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f;border:none;border-radius:10px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:12px;font-family:Georgia,serif}
+.lbtn:hover{background:linear-gradient(135deg,#d4a030,#b8841e)}
+.helpbtn{width:100%;background:transparent;border:1px solid #2a4870;border-radius:8px;padding:10px;font-size:14px;color:#7a96b4;cursor:pointer;font-family:Georgia,serif;margin-bottom:0}
+.helpbtn:hover{border-color:#b8841e;color:#b8841e}
+#helpbox{display:none;margin-top:14px;background:#08111f;border:1px solid #1a3050;border-radius:10px;padding:20px;text-align:left;font-size:14px;color:#c0d0e4;line-height:1.8}
+.hstep{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.hnum{width:28px;height:28px;flex-shrink:0;background:linear-gradient(135deg,#b8841e,#9a6e10);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#08111f}
+.faq-q{color:#b8841e;font-weight:600;margin-bottom:2px}
+.faq-a{color:#7a96b4;margin-bottom:12px}
+.ltip{margin-top:14px;background:rgba(184,132,30,.08);border:1px solid rgba(184,132,30,.25);border-radius:8px;padding:10px 14px;font-size:13px;color:#b8841e}
+.lnote{margin-top:14px;font-size:12px;color:#3a5878;line-height:1.8}
+.lnote a{color:#5a7898}
+.lcopy{margin-top:14px;padding-top:14px;border-top:1px solid #1a3050;font-size:12px;color:#3a5878;line-height:1.9}
+
+/* MAIN APP */
+#app{display:none;min-height:100vh;flex-direction:column}
+.header{background:linear-gradient(180deg,#0c1a2e,#08111f);border-bottom:1px solid #b8841e;padding:0 16px;display:flex;align-items:center;position:sticky;top:0;z-index:200;box-shadow:0 2px 40px rgba(0,0,0,.6)}
+.brand{display:flex;align-items:center;gap:12px;padding:12px 16px 12px 0;border-right:1px solid #1a3050;flex-shrink:0}
+.seal{width:42px;height:42px;background:radial-gradient(circle,#d4a030,#b8841e,#8a6010);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 16px rgba(184,132,30,.5)}
+.brand-title{font-size:17px;font-weight:700;color:#e2d9c8}
+.brand-ed{font-size:10px;color:#b8841e;letter-spacing:.1em;text-transform:uppercase}
+nav{display:flex;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.nb{padding:0 14px;height:64px;font-family:Georgia,serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#5a7898;border:none;background:none;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;border-top:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:5px}
+.nb:hover{color:#c8b898}
+.nb.on{color:#b8841e;border-bottom-color:#b8841e;background:rgba(184,132,30,.06)}
+.hearing-badge{flex-shrink:0;padding:0 12px}
+.hpill{background:rgba(30,90,50,.2);border:1px solid #2a6e3a;border-radius:20px;padding:5px 12px;font-size:12px;color:#4a9e5a;display:flex;align-items:center;gap:6px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.dot-live{animation:blink 1.5s infinite}
+
+.page{padding:24px;max-width:960px;margin:0 auto;width:100%}
+
+/* CARDS */
+.card{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:14px;padding:22px;cursor:pointer;transition:all .25s}
+.card:hover{border-color:#b8841e;transform:translateY(-3px);box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:20px 0}
+.ci{font-size:30px;margin-bottom:10px}
+.ct{font-size:18px;font-weight:700;color:#e2d9c8;margin-bottom:7px}
+.cd{font-size:13px;color:#7a96b4;line-height:1.6}
+.cb{display:inline-block;margin-top:12px;background:rgba(184,132,30,.12);color:#b8841e;font-size:11px;font-weight:600;letter-spacing:.1em;padding:3px 10px;border-radius:4px}
+
+/* BUTTONS */
+.btn{padding:10px 24px;border-radius:8px;font-family:Georgia,serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f}
+.btn-gold:hover{background:linear-gradient(135deg,#d4a030,#b8841e);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:#5a7898;border:1px solid #1a3050}
+.btn-ghost:hover{border-color:#b8841e;color:#b8841e}
+.btn-ghost:disabled{opacity:.25;cursor:not-allowed}
+.btn-green{background:linear-gradient(135deg,#2a6e3a,#1e5430);color:#e2d9c8}
+
+/* WIZARD */
+.prog-wrap{background:#0a1828;border:1px solid #1a3050;border-radius:12px;padding:16px 20px;margin-bottom:20px}
+.prog-meta{display:flex;justify-content:space-between;font-size:12px;color:#5a7898;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.prog-track{height:3px;background:#1a3050;border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#b8841e,#d4a030);transition:width .4s}
+.sdots{display:flex;gap:5px;margin-top:12px;flex-wrap:wrap}
+.sdot{width:30px;height:30px;border-radius:50%;border:2px solid #1a3050;background:transparent;cursor:pointer;font-size:12px;font-weight:600;color:#5a7898;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.sdot:hover,.sdot.cur{border-color:#b8841e;color:#b8841e;background:rgba(184,132,30,.12)}
+.sdot.done{border-color:#2a6e3a;background:#2a6e3a;color:#fff}
+.step-card{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:16px;overflow:hidden;margin-bottom:16px}
+.step-top{background:linear-gradient(135deg,#0f2240,#0d1e35);border-bottom:1px solid #1a3050;padding:20px 26px;display:flex;align-items:flex-start;gap:16px}
+.step-icon{font-size:36px;flex-shrink:0}
+.step-lbl{font-size:11px;color:#b8841e;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px}
+.step-h{font-size:22px;font-weight:700;color:#e2d9c8}
+.step-sub{font-size:14px;font-style:italic;color:#7a96b4;margin-top:2px}
+.step-body{padding:18px 26px}
+.cl-item{display:flex;align-items:flex-start;gap:14px;padding:10px 4px;border-bottom:1px solid rgba(26,48,80,.6);cursor:pointer}
+.cl-item:last-child{border-bottom:none}
+.cl-item:hover{background:rgba(184,132,30,.04)}
+.chk{width:22px;height:22px;border:2px solid #2a4870;border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;margin-top:2px}
+.chk.on{background:#2a6e3a;border-color:#2a6e3a}
+.cl-txt{font-size:15px;color:#c0d0e4;line-height:1.5}
+.cl-txt.on{color:#5a7898;text-decoration:line-through}
+.warn{background:rgba(160,90,0,.1);border:1px solid rgba(184,132,30,.35);border-left:4px solid #b8841e;border-radius:6px;padding:12px 16px;margin-top:16px;display:flex;gap:10px}
+.warn-txt{font-size:14px;color:#c8a050;line-height:1.6}
+.step-foot{display:flex;justify-content:space-between;align-items:center;padding:14px 26px;border-top:1px solid #1a3050}
+.step-cnt{font-size:13px;color:#b8841e}
+.ai-hint{background:transparent;border:1px solid #1a3050;border-radius:6px;padding:6px 14px;font-size:13px;color:#5a7898;cursor:pointer;font-family:Georgia,serif}
+.ai-hint:hover{border-color:#b8841e;color:#b8841e}
+.step-nav{display:flex;justify-content:space-between;align-items:center;padding:14px 26px;border-top:1px solid #1a3050}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 155px);min-height:500px}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:16px;padding:4px 0}
+.msg{display:flex;gap:12px;align-items:flex-start}
+.msg.usr{flex-direction:row-reverse}
+.av{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.av.ai{background:radial-gradient(circle,#d4a030,#b8841e)}
+.av.usr{background:linear-gradient(135deg,#1a3050,#2a4870)}
+.bubble{max-width:84%;padding:14px 18px;border-radius:14px;font-size:15px;line-height:1.7;white-space:pre-wrap}
+.bubble.ai{background:#0d1e35;border:1px solid #1a3050;color:#c0d0e4;border-top-left-radius:4px}
+.bubble.usr{background:linear-gradient(135deg,#1a3050,#2a4870);color:#e2d9c8;border-top-right-radius:4px;margin-left:auto}
+.quick-qs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.qq{background:rgba(26,48,80,.5);border:1px solid #2a4870;border-radius:20px;padding:6px 14px;font-size:13px;color:#7a96b4;cursor:pointer;transition:all .2s}
+.qq:hover{border-color:#b8841e;color:#b8841e}
+.chat-input-row{border-top:1px solid #1a3050;padding-top:14px;display:flex;gap:10px}
+.chat-ta{flex:1;background:#0d1e35;border:1px solid #1a3050;border-radius:10px;padding:12px 16px;font-family:Georgia,serif;font-size:15px;color:#e2d9c8;outline:none;resize:none;transition:border .2s}
+.chat-ta:focus{border-color:#b8841e}
+.chat-ta::placeholder{color:#304060}
+.send-btn{background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f;border:none;border-radius:10px;padding:12px 18px;font-size:18px;cursor:pointer;align-self:flex-end;transition:all .2s}
+.send-btn:hover:not(:disabled){transform:translateY(-1px)}
+.send-btn:disabled{opacity:.3;cursor:not-allowed}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-8px)}}
+.dot{width:8px;height:8px;background:#b8841e;border-radius:50%;animation:bounce 1.2s infinite;display:inline-block;margin:0 2px}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+
+/* RULES */
+.rules-search{width:100%;background:#0d1e35;border:1px solid #1a3050;border-radius:10px;padding:12px 18px;font-family:Georgia,serif;font-size:15px;color:#e2d9c8;outline:none;margin-bottom:20px}
+.rules-search:focus{border-color:#b8841e}
+.sec-title{font-size:17px;font-weight:700;color:#b8841e;margin:20px 0 12px;padding-bottom:6px;border-bottom:1px solid #1a3050}
+.rules-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin-bottom:8px}
+.rc{background:#0a1828;border:1px solid #1a3050;border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .2s}
+.rc:hover{border-color:#b8841e;transform:translateY(-2px)}
+.rnum{font-size:12px;color:#b8841e;font-weight:700;letter-spacing:.06em;margin-bottom:3px}
+.rname{font-size:16px;font-weight:700;color:#e2d9c8;margin-bottom:7px}
+.rsum{font-size:13px;color:#7a96b4;line-height:1.55}
+.rtap{margin-top:10px;font-size:11px;color:#3a5878}
+
+/* FORM INPUTS */
+.fi{width:100%;background:#08111f;border:1px solid #2a4870;border-radius:8px;padding:9px 12px;font-family:Georgia,serif;font-size:14px;color:#e2d9c8;outline:none}
+.fi:focus{border-color:#b8841e}
+.fl{font-size:11px;color:#7a96b4;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px}
+.fg{margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px}
+
+/* HOME WHATS IN APP */
+.wia{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:16px;overflow:hidden;margin-bottom:24px}
+.wia-hdr{background:linear-gradient(135deg,#0f2240,#0d1e35);border-bottom:1px solid #1a3050;padding:18px 26px;display:flex;align-items:center;gap:12px}
+.wia-body{padding:22px 26px}
+.free-badge{display:inline-block;background:rgba(42,110,58,.2);border:1px solid #2a6e3a;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:#4a9e5a;letter-spacing:.08em;margin-bottom:14px}
+.api-badge{display:inline-block;background:rgba(184,132,30,.15);border:1px solid rgba(184,132,30,.4);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:#b8841e;letter-spacing:.08em;margin-bottom:14px}
+.mini-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.mini-card{background:rgba(42,110,58,.06);border:1px solid rgba(42,110,58,.25);border-radius:10px;padding:14px 16px;cursor:pointer;transition:all .2s}
+.mini-card:hover{border-color:#2a6e3a;background:rgba(42,110,58,.12)}
+.ai-card{background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.25);border-radius:10px;padding:16px 18px;cursor:pointer;transition:all .2s}
+.ai-card:hover{border-color:#b8841e;background:rgba(184,132,30,.1)}
+.cost-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.cost-card{background:#08111f;border:1px solid #1a3050;border-radius:10px;padding:14px 16px}
+.divider{height:1px;background:#1a3050;margin:20px 0}
+
+/* SAIL CANADA */
+.sc-card{border-radius:12px;padding:18px 20px;margin-bottom:12px;display:flex;gap:12px}
+.sc-rule{font-size:15px;font-weight:700;margin-bottom:7px}
+.sc-text{font-size:15px;color:#c0d0e4;line-height:1.65}
+.sc-note{font-size:13px;font-style:italic;border-top:1px solid rgba(26,48,80,.6);padding-top:8px;margin-top:10px;color:#7a96b4}
+
+/* LOG */
+.log-entry{background:#0d1e35;border:1px solid #1a3050;border-radius:14px;padding:18px 22px;transition:border .2s;margin-bottom:12px}
+.log-entry:hover{border-color:#b8841e}
+.log-vs{font-size:17px;font-weight:700;color:#e2d9c8}
+.log-meta{font-size:13px;color:#7a96b4;display:flex;gap:14px;flex-wrap:wrap;margin-top:5px}
+.log-btns{display:flex;gap:6px;flex-shrink:0}
+.log-btn{background:transparent;border:1px solid #1a3050;border-radius:6px;padding:6px 10px;font-size:12px;color:#7a96b4;cursor:pointer;font-family:Georgia,serif}
+.log-btn:hover{border-color:#b8841e;color:#b8841e}
+.log-btn.del:hover{border-color:#c05030;color:#c05030}
+
+/* DISCLAIMER */
+.disc{background:#0a1828;border:1px solid #1a3050;border-left:4px solid #b8841e;border-radius:10px;padding:18px 22px;margin-top:16px}
+.disc-t{font-size:15px;color:#b8841e;margin-bottom:8px;font-weight:700}
+.disc-b{font-size:14px;color:#7a96b4;line-height:1.7}
+
+/* SHARE BOX */
+.share-box{background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:14px;padding:20px 24px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.share-url{background:#08111f;border:1px solid #1a3050;border-radius:6px;padding:8px 14px;font-family:monospace;font-size:13px;color:#b8841e;flex:1;min-width:240px}
+.copy-btn{background:linear-gradient(135deg,#b8841e,#9a6e10);color:#08111f;border:none;border-radius:8px;padding:8px 18px;font-family:Georgia,serif;font-size:14px;font-weight:700;cursor:pointer}
+
+/* FOOTER */
+footer{background:#050e1a;border-top:1px solid #1a3050;padding:14px 24px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;margin-top:24px}
+.fc{font-size:12px;color:#3a5878}
+.fw{font-size:11px;color:#2a4060;letter-spacing:.04em}
+
+/* START SCREEN */
+.start-screen{text-align:center;padding:60px 20px}
+</style>
+</head>
+<body>
+
+<!-- LAUNCH SCREEN -->
+<div id="launch">
+  <div class="lcard">
+    <div class="lseal">⚓</div>
+    <div class="ltitle">Sailing Judge Assistant</div>
+    <div class="lsub">Racing Rules Guidance Tool</div>
+    <div class="ledition">2025–2028 RRS · World Sailing Case Book · Sail Canada Prescriptions</div>
+    <div class="lurl">sailing416-ship-it.github.io/sailing-judge</div>
+    <div class="ldiv"></div>
+    <div class="llabel">Enter Your Anthropic API Key</div>
+    <input class="linput" id="keyInput" type="password" placeholder="sk-ant-api03-..." />
+    <div class="lerr" id="keyErr" style="display:none"></div>
+    <button class="lbtn" onclick="launch()">Launch Application →</button>
+    <button class="helpbtn" onclick="toggleHelp()">▼ &nbsp;❓ What is an API key and how do I get one?</button>
+    <div id="helpbox">
+      <div style="font-size:16px;font-weight:700;color:#b8841e;margin-bottom:14px">How to Get Your API Key — 3 Steps</div>
+      <div class="hstep"><div class="hnum">1</div><div><div style="font-weight:600;color:#e2d9c8;margin-bottom:2px">Create a free Anthropic account</div><div style="color:#7a96b4">Go to <a href="https://console.anthropic.com" target="_blank" style="color:#b8841e">console.anthropic.com</a> and sign up. Free to register — no credit card needed.</div></div></div>
+      <div class="hstep"><div class="hnum">2</div><div><div style="font-weight:600;color:#e2d9c8;margin-bottom:2px">Click "API Keys" then "Create Key"</div><div style="color:#7a96b4">In the left menu, choose API Keys. Click Create Key. Give it any name. Copy the key — it starts with sk-ant-</div></div></div>
+      <div class="hstep"><div class="hnum">3</div><div><div style="font-weight:600;color:#e2d9c8;margin-bottom:2px">Paste it above and click Launch</div><div style="color:#7a96b4">Paste the key above and click Launch Application. The app saves it in this browser — you only need to do this once.</div></div></div>
+      <div style="border-top:1px solid #1a3050;padding-top:14px;margin-top:4px">
+        <div style="font-weight:700;color:#e2d9c8;margin-bottom:10px">Frequently Asked Questions</div>
+        <div class="faq-q">Q: Is it free?</div><div class="faq-a">Anthropic gives you US$5 of free credit when you sign up — enough for 100–500 queries. Each question costs ~$0.01–$0.05 (1–5 cents Canadian). A full regatta weekend typically costs under $3.</div>
+        <div class="faq-q">Q: Is my key safe?</div><div class="faq-a">Your key is stored only in your browser's local storage on this device. It is sent directly to Anthropic when you ask a question and nowhere else.</div>
+        <div class="faq-q">Q: Do other judges need their own key?</div><div class="faq-a">Yes — each device needs its own key. Share the app link: <span style="color:#b8841e">sailing416-ship-it.github.io/sailing-judge</span> — they open it in any browser and create their own free account.</div>
+        <div class="faq-q">Q: Can I set a spending limit?</div><div class="faq-a">Yes. At console.anthropic.com go to Settings → Limits to set a monthly spending cap.</div>
+      </div>
+      <div class="ltip">💡 <strong>Tip:</strong> The Hearing Wizard, Rules Reference, Sail Canada Prescriptions, Hearing Log and Decision Form all work <strong>without</strong> an API key. Only the AI Assistant tab requires one.</div>
+    </div>
+    <div class="lnote">🔒 Key stored locally on this device only<br>Get a key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+    <div class="lcopy">
+      <strong style="color:#5a7898">© 2025 John Golding. All rights reserved.</strong><br>
+      Created by John Golding. Protest committee guidance tool.<br>
+      Racing Rules of Sailing © World Sailing Limited 2025.<br>
+      Case Book © World Sailing Limited, July 2025.<br>
+      Sail Canada Prescriptions © Sail Canada 2025.
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="header">
+    <div class="brand">
+      <div class="seal">⚓</div>
+      <div>
+        <div class="brand-title">Sailing Judge Assistant</div>
+        <div class="brand-ed">RRS 2025–2028 · Case Book · Sail Canada</div>
+      </div>
+    </div>
+    <nav id="nav"></nav>
+    <div class="hearing-badge" id="hearingBadge" style="display:none">
+      <div class="hpill"><span class="dot-live">●</span> Hearing Active</div>
+    </div>
+  </div>
+  <div id="pageContent"></div>
+  <footer>
+    <div class="fc"><strong style="color:#5a7898">© 2025 John Golding. All rights reserved.</strong> · Sailing protest committee guidance tool · v1.0 (2025)</div>
+    <div class="fw">RRS © World Sailing Ltd 2025 · Case Book © World Sailing Ltd July 2025 · Sail Canada Prescriptions © Sail Canada 2025 · Guidance only</div>
+  </footer>
+</div>
+
+<script>
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var API_KEY = '';
+var activeTab = 'home';
+var hearingStep = 0;
+var hearingStarted = false;
+var checkedItems = {};
+var chatMessages = [{role:'assistant',content:'Welcome. I\'m your sailing judge assistant, trained on the 2025-2028 Racing Rules of Sailing, World Sailing Case Book, and Sail Canada Prescriptions.\n\nAsk me about any rule, incident, or procedure. I\'ll always cite specific rule and case numbers.\n\nTip: Hearing Wizard, Rules Reference, Sail Canada tab, Hearing Log and Decision Form all work without an API key. Only this AI tab needs one.'}];
+var chatLoading = false;
+var rulesSearch = '';
+var hearingLogs = [];
+var showLogForm = false;
+var editingLogId = null;
+var logForm = {date:today(),event:'',protestNo:'',protestor:'',protestee:'',incidentTime:'',incidentLocation:'',rulesAlleged:'',outcome:'',penalty:'',facts:'',rules:'',notes:'',chair:'',members:''};
+var decForm = {date:today(),event:'',protestNo:'',protestor:'',protestee:'',incidentTime:'',incidentLocation:'',rulesAlleged:'',hearingDate:today(),parties:'',validity:'valid',facts:'',rules:'',cases:'',exoneration:'',decision:'upheld',penalty:'',notes:'',chair:'',members:'',appeal:true};
+
+function today(){return new Date().toISOString().slice(0,10);}
+
+// ── LAUNCH ────────────────────────────────────────────────────────────────────
+function toggleHelp(){
+  var b = document.getElementById('helpbox');
+  var btn = document.querySelector('.helpbtn');
+  if(b.style.display==='none'){b.style.display='block';btn.textContent='▲  Hide help';}
+  else{b.style.display='none';btn.textContent='▼  ❓ What is an API key and how do I get one?';}
+}
+
+function launch(){
+  var k = document.getElementById('keyInput').value.trim();
+  var err = document.getElementById('keyErr');
+  if(!k.startsWith('sk-ant-')){err.textContent='Key must start with sk-ant-';err.style.display='block';return;}
+  API_KEY = k;
+  try{localStorage.setItem('sja_key',k);}catch(e){}
+  document.getElementById('launch').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('app').style.flexDirection='column';
+  renderNav();
+  renderPage();
+}
+
+// Check for saved key
+(function(){
+  try{var k=localStorage.getItem('sja_key');if(k&&k.startsWith('sk-ant-')){document.getElementById('keyInput').value=k;}}catch(e){}
+  document.getElementById('keyInput').addEventListener('keydown',function(e){if(e.key==='Enter')launch();});
+})();
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+var TABS = [['home','🏠','Home'],['wizard','⚖️','Wizard'],['assistant','🤖','AI Assistant'],['rules','📖','Rules'],['canada','🍁','Sail Canada'],['manual','📚','Judges Manual'],['log','🗂️','Log'],['decision','🖨️','Decision']];
+
+function renderNav(){
+  var nav = document.getElementById('nav');
+  nav.innerHTML = TABS.map(function(t){
+    return '<button class="nb'+(activeTab===t[0]?' on':'')+'" onclick="goTab(\''+t[0]+'\')">'+'<span>'+t[1]+'</span> '+t[2]+'</button>';
+  }).join('');
+}
+
+function goTab(id){
+  activeTab=id;
+  if(id==='wizard'&&!hearingStarted){hearingStarted=false;}
+  renderNav();
+  renderPage();
+  window.scrollTo(0,0);
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+var STEPS = [
+  {id:1,icon:'📋',title:'Receive & Log Protest',rule:'Rule 60.3',desc:'Check protest received within time limit',
+   items:['Note exact time protest was received','Check time limit has not expired (SI may specify; default is end of protest time limit)','Assign a protest number','Identify protestor and protestee boat(s)','Log incident: time, location, rules alleged','Note if RC or PC is the protestor'],
+   warn:'If potentially outside time limit, do not dismiss — hold validity hearing first. The PC may extend the time limit if there is good reason (Rule 60.3(b)).'},
+  {id:2,icon:'✅',title:'Check Validity',rule:'Rules 60.2, 60.3',desc:'Determine if protest meets all requirements',
+   items:["Was 'Protest' hailed at first reasonable opportunity? (Rule 60.2(a)(1))","Was red flag displayed promptly if hull >6m? (Rule 60.2(a)(1))","Check flag exceptions: not in hailing distance? Error in course? Injury/damage? (Rule 60.2(b))",'Is protest in writing? (Rule 60.3(a))','Does it identify protestor and protestee? (Rule 60.3(a))','Does it describe the incident? (Rule 60.3(a))','Was it delivered within the time limit? (Rule 60.3(b))','If RC/PC protest: was boat informed after race within time limit?'],
+   warn:'If invalid, inform parties with reasons and record the decision. A redress request is invalid if it does not comply with Rule 60.3.'},
+  {id:3,icon:'📢',title:'Notify All Parties',rule:'Rule 63.2',desc:'Ensure all parties can attend and are informed',
+   items:['Notify protestee of hearing time and place','Allow reasonable time to prepare','Identify if other boats may be affected — notify them too','Ask each party if they have witnesses','Inform parties they may have a representative','Post notice on official notice board if party cannot be found'],
+   warn:'If protestee cannot be found after reasonable attempts, document all attempts. Hearing may proceed in their absence (Rule 63.2).'},
+  {id:4,icon:'⚖️',title:'Open the Hearing',rule:'Rule 63.1',desc:'Formally open and establish scope',
+   items:['Confirm all parties present or accounted for','Introduce panel members by name','Ask parties if they have conflict of interest objections to panel members','Check panel members for conflicts of interest (see Definitions: Conflict of Interest)','Read the protest form aloud','State which rules are alleged to have been broken','Explain the procedure to the parties','Advise parties they will each have opportunity to present their case'],
+   warn:'If a party fails to appear after proper notice, hearing may proceed and party is bound by the decision (Rule 63.2).'},
+  {id:5,icon:'🔍',title:'Take Evidence',rule:'Rule 63.3',desc:'Hear all parties and witnesses fairly',
+   items:['Exclude witnesses (except parties) until their turn','Protestor presents account and may draw a diagram','Panel may question the protestor','Protestee presents account and may draw a diagram','Panel may question the protestee','Call witnesses — heard in presence of parties (Rule 63.3(a))','Parties may question each other\'s witnesses','Panel may recall any party or witness','Consider documents, videos or other evidence','Invite parties to make closing statements'],
+   warn:'PC may accept any evidence it considers relevant (Rule 63.3(b)). Conflicts in testimony must be resolved in findings of fact.'},
+  {id:6,icon:'📝',title:'Find the Facts',rule:'Rule 63.6',desc:'Deliberate privately — establish what happened',
+   items:['Excuse all parties and witnesses from deliberation','Panel discusses all evidence','Resolve conflicts — decide which evidence to accept','Draw an agreed diagram showing positions and movements','Determine: courses, speeds, distances, timing of key moments','Determine: when overlap established/broken, when zone reached','Record findings of fact clearly in writing','Ensure facts address all elements relevant to the rules in question'],
+   warn:'Facts must be based on evidence — not assumptions or speculation. If disputed, state which version the panel accepts and why.'},
+  {id:7,icon:'📖',title:'Apply the Rules',rule:'Rule 64.1',desc:'Apply the Racing Rules to your findings of fact',
+   items:['Identify which rules apply to the facts as found','Check all relevant definitions (Keep Clear, Mark-Room, Overlap, etc.)','Apply Part 2 right-of-way rules to determine obligations','Consider Rule 14 (Avoiding Contact) — applies to both boats','Consider Rule 15 (Acquiring ROW) and Rule 16 (Changing Course) if relevant','Check Casebook for cases with similar facts','Consider if exoneration applies: Rule 21 or Rule 43.1(c)','Determine: was a rule broken? By which boat?','Consider if any penalty was taken at the time (Rule 44)','Record which rules were broken and by whom'],
+   warn:'Rule 14 must be considered for every contact incident — it may apply even to the right-of-way boat. Use AI Assistant to find relevant cases.'},
+  {id:8,icon:'🏁',title:'Make the Decision',rule:'Rule 64',desc:'Reach decision and record it formally in writing',
+   items:['Decide: protest upheld or dismissed?','If upheld: state which boat broke which specific rule(s)','Consider exoneration under Rule 21 or Rule 43.1(c)','Determine penalty: DSQ, percentage scoring penalty, or other','Check if DSQ should be non-excludable (DNE) — Rule 69 cases','Record decision: facts found, rules applied, conclusion','Note any dissenting opinions with reasons','Ensure written decision is complete and self-explanatory'],
+   warn:'Decision must state: (1) facts found, (2) rules that apply, (3) conclusion. An incomplete decision may be grounds for reopening or appeal.'},
+  {id:9,icon:'📣',title:'Inform the Parties',rule:'Rule 65',desc:'Announce decision to all parties formally',
+   items:['Recall all parties to the hearing room','Announce: protest upheld or dismissed','State the key facts found','State which rules were applied and how','Advise of any penalty imposed','Advise of right to request reopening (Rule 66)','Advise of right to appeal under Rule 70 and Sail Canada prescriptions','Offer written decision if requested (Rule 65.1)'],
+   warn:'All parties, including those not present, must be informed (Rule 65.1). Parties have the right to know facts found and rules applied.'},
+  {id:10,icon:'📁',title:'Post-Hearing Actions',rule:'Rule 65.2',desc:'Complete all follow-up and documentation',
+   items:['Finalize and sign the written decision document','Notify race committee of any scoring change required (Rule 65.2)','File all protest documents and evidence','If RC or OA error found, consider redress for affected boats (Rule 62)','If gross misconduct suspected, consider Rule 69 referral','Consider if other boats may have broken a rule (Rule 60.4)','Ensure results board / notice board is updated'],
+   warn:'RC must be notified promptly so results can be adjusted. If a boat other than the protestee broke a rule, PC may protest that boat (Rule 60.4(c)).'}
+];
+
+var KEY_RULES = [
+  {num:'Rule 10',name:'Port & Starboard',s:'A port-tack boat shall keep clear of a starboard-tack boat.',part:'Part 2'},
+  {num:'Rule 11',name:'Windward & Leeward',s:'A windward boat shall keep clear of a leeward boat (same tack, overlapped).',part:'Part 2'},
+  {num:'Rule 12',name:'Astern & Clear Ahead',s:'A boat clear astern shall keep clear of a boat clear ahead (same tack, not overlapped).',part:'Part 2'},
+  {num:'Rule 13',name:'While Tacking',s:'After passing head to wind, keep clear until on a close-hauled course.',part:'Part 2'},
+  {num:'Rule 14',name:'Avoiding Contact',s:'Both boats shall avoid contact if reasonably possible. ROW boat exonerated unless damage or injury results.',part:'Part 2'},
+  {num:'Rule 15',name:'Acquiring Right of Way',s:'When acquiring ROW, initially give the other boat room to keep clear.',part:'Part 2'},
+  {num:'Rule 16',name:'Changing Course',s:'When changing course, give the keep-clear boat room to keep clear.',part:'Part 2'},
+  {num:'Rule 17',name:'Proper Course',s:'If a boat became overlapped to leeward within 2 lengths, she shall not sail above her proper course.',part:'Part 2'},
+  {num:'Rule 18',name:'Mark-Room',s:'Outside boat gives mark-room to inside overlapped boat. Zone is 3 hull lengths. Check overlap at zone entry.',part:'Part 2'},
+  {num:'Rule 19',name:'Room at Obstruction',s:'ROW boat may choose sides. Outside overlapped boat gives room at a continuing obstruction.',part:'Part 2'},
+  {num:'Rule 20',name:'Room to Tack',s:'A boat may hail for room to tack. Hailed boat shall tack promptly or give room.',part:'Part 2'},
+  {num:'Rule 21',name:'Exoneration',s:'Exonerated if a rule is broken because another boat failed to give entitled room.',part:'Part 2'},
+  {num:'Rule 31',name:'Touching a Mark',s:'A boat shall not touch a mark that begins, bounds or ends the leg she is racing.',part:'Part 3'},
+  {num:'Rule 42',name:'Propulsion',s:'Compete only by using wind and water. Pumping, rocking, ooching prohibited.',part:'Part 4'},
+  {num:'Rule 44',name:'Penalties at Incident',s:'Two-Turns or One-Turn Penalty to exonerate at the time of incident.',part:'Part 4'},
+  {num:'Rule 60',name:'Right to Protest',s:'A boat or committee may protest. Sets out who may protest and when.',part:'Part 5'},
+  {num:'Rule 61',name:'Initiating a Protest',s:"Hail 'Protest' + red flag at first opportunity. Written protest within time limit.",part:'Part 5'},
+  {num:'Rule 62',name:'Redress',s:'Request redress if score was made significantly worse through no fault of own.',part:'Part 5'},
+  {num:'Rule 63',name:'Hearings',s:"Parties' right to be present, evidence rules, validity of hearings, taking evidence.",part:'Part 5'},
+  {num:'Rule 64',name:'Decisions',s:'Decisions on protests and redress. Exoneration, penalties, and scoring changes.',part:'Part 5'},
+  {num:'Rule 65',name:'Informing Parties',s:'Inform of decision, facts found, and rules applied. Right to written decision.',part:'Part 5'},
+  {num:'Rule 66',name:'Reopening',s:'May reopen for significant new evidence or if there was an error in process.',part:'Part 5'},
+  {num:'Rule 69',name:'Misconduct',s:'Behaviour that brings sport into disrepute. Separate procedure, possible referral.',part:'Part 5'}
+];
+
+var SC_ITEMS = [
+  {rule:'Part 5 — Protests, Redress, Hearings',icon:'⚖️',hi:true,text:'No fee shall be charged for any procedure of the protest committee under Part 5 or Appendix T.',note:'CANNOT be changed by sailing instructions. Mandatory at all Canadian events.'},
+  {rule:'Rule 46 — Person in Charge',icon:'🧑‍✈️',hi:false,text:"The designated person in charge, if resident in Canada, shall be a member of Sail Canada through a club affiliated to Sail Canada or their Provincial Sailing Association.",note:'May be changed if IJ or no-appeal PC is appointed.'},
+  {rule:'Rule 65.1 — Legal Liability and Costs',icon:'💰',hi:true,text:'A boat found by a protest committee to have broken a rule and caused damage shall be considered at fault for the purposes of Rule 65.1.',note:'CANNOT be changed by SIs. Both required: rule broken AND damage caused.'},
+  {rule:'Rule 70.3(b) — Appeals',icon:'📬',hi:false,text:'Sail Canada so prescribes. Appeals and requests are made to Sail Canada.',note:'Submit to: appeals@sailing.ca'},
+  {rule:'Rule 88.2 — Changes to Prescriptions',icon:'🔒',hi:true,text:'Prescriptions to Part 5 and Rule 65.1 may NOT be changed or deleted. SIs may change other prescriptions only if IJ or no-appeal PC is appointed.',note:'Master rule governing which prescriptions can be modified.'},
+  {rule:'Rule 91(b) — International Jury',icon:'🌐',hi:false,text:'Written Sail Canada approval required before requesting a 3-member international jury under Rule N1.7.',note:'Contact: appeals@sailing.ca for prior written approval.'},
+  {rule:'Appendix R — Appeals Procedures',icon:'📮',hi:false,text:'Submit appeals to appeals@sailing.ca. Sail Canada may delegate to provincial appeals committees. Provincial decisions may be further appealed to Sail Canada.',note:"On further appeal: 'protest committee' becomes 'provincial appeals committee' throughout."}
+];
+
+var MANUAL_SECTIONS = [
+  {
+    "id": "D",
+    "icon": "📋",
+    "title": "Best Practice Before & At the Event",
+    "ref": "Chapter D",
+    "content": "D\n\nBest Practice before and at the Event\n\nContents\nBefore the Event\nD.1. Pre-event Responsibilities of the Chairman\nD.2 Communication with the Chairman and\nVice-Chairman\nD.3 Deciding on the Extent of the Responsibilities of\nthe International Jury\nD.4 Reviewing the Draft Notice of Race and Sailing\nInstructions\nD.5 Allocating Tasks to Protest Committee Members\n\nPage\nD1\nD2\nD2\nD2\nD3\n\nAt the Event\nD 6 Arrival\nD6\nD 7 World Sailing Jury Policy\nD6\nD.8 The First Meeting of the Protest Committee\nD7\nD.9 Pre-Race Meeting with Race Committee Chairman,\nPrincipal Race Officer and other Officials\nD8\nD.10 Briefing of Competitors\nD8\nD.11 Communicating with Support Persons\nD9\nD.12 Communicating with the Media\nD 10\nD.13 Appointing an investigator, rule 69 allegations\nD 10\n\nBefore the Event\nD.1\n\nPre-event Responsibilities of the Chairman\nBefore an event begins, the chairman and vice-chairman of the protest\ncommittee have a variety of tasks to perform or allocate, and items to check.\nAlthough the chairman has no authority over an organizing authority, he has\nconsiderable influence if the relationship can be kept supportive. When\npossible, the chairman should tactfully ensure that the organizing authority is\naware of its responsibilities with respect to the protest committee.\nThe main pre-event responsibilities fall to the chairman and vice-chairman, but\nif other members can help, the protest committee will be that much better\nprepared.\n\nD.2\n\nCommunication with the Chairman and Vice-Chairman\nLong before the event begins, the tasks of the chairman and vice chairman\ninclude:\nD.1\n\n•\n•\n•\n•\n•\n•\n•\n\nD.3\n\nreviewing the notice of race and the draft sailing instructions;\nif so required, assisting the organizing authority to choose the appropriate\njudges for the event;\nagreeing with the organizing authority on reimbursement of expenses and\nhousing;\ncommunicating to the organizing authority the requirements of the protest\ncommittee for operations ashore and on the water;\ndeciding and communicating the time of the first meeting of the protest\ncommittee;\nverifying if the organizing authority is using an online communication\nplatform for sailors or race officials, and to what extent; and\nallocating other tasks and duties among the members.\n\nDeciding on the Extent of the Responsibilities of the\nInternational Jury\nRule N2 lists the responsibilities of the international jury. Rules N2.2 and N2.3\nlist the additional responsibilities that may be given to the international jury, as\nrequired by the organizing authority.\nAn international jury is independent of, and includes no member of the race\ncommittee or technical committee. It does not oversee or direct the race\ncommittee. A prudent protest committee can suggest improvements and ideas\nabout courses and other race committee matters to the principal race officer. If\nthe decisions of the race committee then come into question in a redress\nhearing, the protest committee will be able to make an impartial judgment, since\nthey were not involved in those decisions.\n\nD.4\n\nReviewing the Draft Notice of Race and Sailing Instructions\nThe notice of race is, in effect, an agreement or contract between the organizers\nof the event and the competitors. The organizers set out the conditions under\nwhich they are prepared to run the event and competitors use the information\nto decide whether they will invest the time, effort, and money to attend.\nIt is therefore important that the notice of race contains the information\nnecessary to enable a competitor to decide whether or not to compete in the\nevent. Competitors need information on variations from the racing rules,\nadvertising, eligibility (crew weight restrictions, nationality, measurement or\nrating certificates, etc.), type of courses, alternative penalties, scoring, and\nprizes, together with the other requirements of Rule J1. Appendix J and the\nnotice of race and sailing instruction guides published on the World Sailing\nwebsite should be used to review the notice of race and ensure that all the\nrequired information is covered, and that the standard wording is used for\nconsistency and to prevent future problems.\nIf an online platform is used for competitors to access documents or to submit\nrequests (hearing, scoring, crew or equipment substitution, etc.), the notice of\nrace should mention the requirements to access the platform (e.g., a\nD.2\n\nsmartphone with internet connection). Specific platform details can be specified\nlater.\nHowever, even after a thorough effort, changes to the notice of race may be\nnecessary. Examples could include the harbor blocked by a vessel or available\nradio frequencies changed by government authority. In most cases competitors\nwill understand and accept the change; but changes must be kept to a\nminimum.\nCheck the notice of race and the sailing instructions for any differences or\nomissions of the requirements of RRS Appendix J. If there is conflict between\nthe notice of race, the sailing instructions or any of the other documents that\ngovern the event, rule 63.7 instructs the protest committee to apply the rule that\nit believes will provide the fairest result for all boats affected when deciding any\nprotest or request for redress. However, good practice is to amend the notice\nof race and/or sailing instructions as soon as the conflict is discovered.\nAny change to the World Sailing Advertising Code requires careful review.\nRestrictions to advertising must be stated in the notice of race. Unless some\nform of alternative or discretionary penalty system is incorporated, the protest\ncommittee has no choice but to disqualify a boat after finding as a fact that she\ndid not comply with a sailing instruction which is includes the words ‘boats shall’\nor ‘boats shall not’.\nThe description of the starting and finishing lines and course instructions should\nbe clear. If the members of the protest committee cannot easily understand\nthem, then some of the competitors will be confused as well.\nThe chairman and vice-chairman of the protest committee and, if possible, the\nother members, should review the sailing instructions before the final draft is\nagreed upon. Members should send their comments to the chairman who\nreviews these before submitting them to the race committee. All members of\nthe protest committee should review the final document so that any corrections\ncan be suggested to the race committee before the competitors' briefing.\nHowever, last-minute changes should be limited to only those required to sail\nthe regatta.\n\nD.5\n\nAllocating Tasks to Protest Committee Members\nAt least two weeks before travel, the chairman should contact other members\nof the protest committee to welcome them. The protest committee chairman\nshould consider how the protest committee will operate, decide when the first\nprotest committee meeting will be held and allocate and communicate tasks to\nthe protest committee members. This will enable them to plan their travel well\nin advance and to come to the event well prepared. A brief draft agenda for the\nfirst protest committee meeting will help the less experienced judges who are\nthen able to see the topics to be discussed and be well prepared to contribute\nto them.\nThese tasks will vary according to the type of event, and the size of the protest\ncommittee. At most events it is useful to establish a shared document repository\nD.3\n\n(e.g. Dropbox or Drive) with all the applicable rules, notice templates etc.,\nprotest committee member tasks, and information about any online systems\nthat the protest committee will be expected to use at the event. The protest\ncommittee chairman should take account of the experience of each of the\ncommittee members, any requirement to conduct international judge reference\nassessments and local language considerations. It is good practice to ask\ncommittee members for their task preferences and, if possible, take these into\naccount when allocating tasks.\nTypical tasks for many events are:\nNotice of race and sailing instructions. This task in"
+  },
+  {
+    "id": "E",
+    "icon": "📝",
+    "title": "Protest Committee Administration",
+    "ref": "Chapter E",
+    "content": "E\n\nProtest Committee Administration at the Event\n\nContents\nE.1 The Duties of the Jury Secretary\nE.2 General Daily Administration\nE.3 Receiving Hearing Request Forms\nE.4 Recording and Copying the Request\nE.5 Arbitration System\nE.6 Accepting a Penalty in an Incident\nE.7 Withdrawing Protests\nE.8 Scheduling Hearings\nE.9 The Hearing\nE.10 After the Last Race\nE.1\n\nPage\nE1\nE2\nE2\nE2\nE3\nE3\nE4\nE4\nE5\nE6\n\nThe Duties of the Jury Secretary\nAt many events, a secretary is appointed to manage the administrative tasks of\nthe protest committee. This person could be a local judge who is in training; but\nneed not be a judge. A person with strong organizational skills who speaks the\nlocal language is an asset to the committee. The person is most frequently\nreferred to as the jury secretary, and that term is used throughout this section.\nThe most essential part of the jury secretary’s job is organizing the protest\ncommittee desk for the receiving and processing of requests for hearings.\nIdeally the desk should be situated next to the hearing room, where it is easily\naccessible by sailors, and taking into consideration that at some events they\nmight come in wet. The secretary and the chairman should consult before the\nstart of the event and decide the system for receiving protests to be used.\nThe job of the jury secretary depends on the working relationship between the\npeople involved. A good secretary will take a wide view and allow the protest\ncommittee to concentrate on the racing, the hearings and the rules without\nhaving to take on administrative tasks. The secretary should check to see that:\n• the hearing room has sufficient chairs, table, lighting, paper pads, protest\nmodels;\n• the official notice board is located where designated in the sailing\ninstructions and is properly identified, including space for notices from the\nprotest committee;\n• there is access to a printer, a dedicated photocopier, and fast internet;\n• the communication between the chairman, race committee, results\nservice, and others has been agreed and is operating;\n• a messaging system, such as a WhatsApp link between members of the\nprotest committee and other officials, is established and working;\n• when national authority prescriptions are in force, a copy in English is\navailable for all competitors and also posted on the official notice board;\n• there is a wifi access code;\nE.1\n\n•\n\nrequest for hearing forms and scoring inquiry forms are available at the\nprotest desk.\n\nThe jury secretary should have a full understanding of any online event\nmanagement system being used and be able to arrange training for others\nwhere necessary.\n• The secretary should be able to provide the protest committee with:\n• a copy of or a link to the notice of race, sailing instructions, applicable\nnational authority prescriptions, class rules and notices for each member;\n• the daily time limits for filing protests on each course;\n• the daily list of alternative penalties taken, if prescribed in sailing\ninstructions;\n• access to copies of mark rounding and finish records, if needed for\nredress requests;\n• any letter regarding denial of right of appeal or constitution of the\ninternational jury, if applicable, and ensure that it is displayed, if it is not in\nthe sailing instructions.\n\nE.2\n\nGeneral Daily Administration\nThe chairman of the protest committee should attend meetings of the protest\ncommittee and race committee meetings.\nEach day, each member of the protest committee needs copies of any new\npaperwork, such as amendments. These could be in paper or electronic form.\nThe section of the official notice board for notices from the protest committee\nmust be kept in order.\nApplications for crew substitutions and haul-out requests must be processed, if\nthe sailing instructions specify that these require approval of the protest\ncommittee.\n\nE.3\n\nReceiving Hearing Request Forms\nThe person receiving hearing requests must always accept, and never reject\nany request for a hearing, whatever form it takes, and whether or not it is\nreceived within the time limit. Only the protest committee may decide on the\nvalidity of the request in a hearing.\n\nE.4\n\nRecording and Copying the Request for Hearing Form\nOn receipt, each request for a hearing should receive a number, date, time, and\nthe initials of the person who received it. Record this information on the request\nform and in the log of requests received.\nSome events are using regatta management systems with electronic filing of\nhearing requests forms. Otherwise, if paper copies are used, make a copy of\neach request form for each member of the protest committee, one for the\nperson lodging the request, and one for the other party to the hearing. Keep the\noriginal for the chairman.\nE.2\n\nKeep the papers for each hearing in either a transparent A4 folder or in a paper\nA4 envelope with the protest details written on its front. The transparent folder\nhas several advantages:\n• It reduces the number of tasks that the receiving person has to complete\nin a moment where being timely is essential, despite having many\nincoming requests.\n• It reduces the number of possible errors when copying data from the\nRequest for Hearing Form to the envelope.\n• It maintains the same level of information as the envelope system does:\nan open case will show on top the Request for Hearing Form, while a\nclosed case will show the decision form as the first document in the\ntransparent folder.\nKeep the copy for the parties to the hearing at the protest desk and provide the\nparties with a copy as soon as possible.\nAny report alleging misconduct of either a competitor or a support person,\npresented either verbally or written, must immediately be given to the chairman.\nIt must also be recorded with a time of receipt.\n\nE.5\n\nProtests Considered for Arbitration\nThe section on Arbitration in this manual explains the procedures when a\nprotest is considered for arbitration. When a protest is delivered to the protest\ndesk, the jury secretary will process it as outlined in the previous paragraphs\nand pass it to the judge who will determines if the protest meets the\nrequirements for arbitration. If so, the judge will follow the procedures for\nArbitration. The notice of hearing should be posted on the official notice board,\nwhether or not it proceeds to an arbitration meeting. This ensures that the\narbitration or a hearing if necessary, may proceed as soon as possible.\nIf one or more parties to the arbitration meeting decide to take a post-race\npenalty, the jury secretary will record that information on the official notice board\nand report the score change to the scorer. If the judge permits the protest to be\nwithdrawn, then the notice of hearing will be changed to show that the protest\nis withdrawn, so no hearing will occur.\nIf the arbitration meeting does not proceed or the protest is not withdrawn, then\nthe hearing will proceed as scheduled.\n\nE.6\n\nAccepting a Penalty in an Incident\nWhen a protest has been delivered, a protestee may accept a penalty for the\nincident prior to a hearing. A judge will ask whether the incident resulted in any\ndamage to any boat or injury to a competitor. If there was no damage or injury,\nthe boat may take a penalty by retiring from the race or take any alternative\npenalty available in the sailing instructions. If there was serious damage or\ninjury, the penalty is to retire from the race. The judge will ask the competitor to\nwrite on the protest form:\n\nE.3\n\nI accept a penalty in the incident described in this protest, and hereby retire (or\naccept the penalty of _____________ (fill in any alternative penalty that might\nbe available)\nA representative of the boat accepting the penalty would sign the form. A\nseparate form may be used for this declaration. If so, attach it to the protest\nform. In all cases of acknowledgment, the protest must be presented to the\nprotest committee; if possible, alert the protestor and verify if he or she wishes\nto withdraw the protest.\n\nE.7\n\nWithdrawing Protests\nOnce the protest has been received, a protestor’s request to withdraw the\nprotest must be approved as a decision of the protest committee (rule 63.1). A\npanel of the protest committee could be appointed for this purpose. They will\nhold a brief hearing in which the protestor provides the reasons for the request.\nThe protest committee would allow the withdrawal of the protest if there is no\nreason to refuse the request. The competitor should also sign the request form\nconfirming withdrawal of the protest.\n\nE.8\n\nScheduling Hearings\nMany large events use event management systems which have a section for\njury hearings and notices. All protest committee members need to be familiar\nwith the capabilities of the system in use. Some that permit scheduling of\nhearings will also send notifications by text or e-mail to parties, post notices on\nthe event website and update the hearing schedule as hearings progress.\nThese programs add to the efficiency of communicating with competitors.\nThe sailing instructions inform when the hearings may begin. Inform the parties\nas soon as possible of their scheduled hearing time. The first few hearings are\nbest scheduled at 20-minute intervals, and then at half-hour intervals for each\nhearing panel. Thus, if the first one or two requests are invalid, there is little\ndelay. Should the first hearings take much longer, the remaining hearings can\nbe rescheduled.\nThe objective is to keep the protest committee working until all hearings are\ncomplete. Keep the competitors waiting for as short a time as possible. If\nhearings get behind schedule, later hearings should be rescheduled, so that\ncompetitors can get changed or go for a meal.\nWhen there is a protest and a counterprotest, or protests or requests for redress\nfrom different boats about the same incident, they should be scheduled to be\nheard in one hearing.\nThe chairman should first read the Request for Hearing Forms and decide the\nmost efficient order of the hearings. Schedule first any hearings where the race\ncommittee is a party once they are ashore, so they can be heard consecutively.\nOn the last day of the event, schedule first any hearings involving boats that\nmay possibly be prize winners, so the prize giving can commence as soon as\npossible.\nE.4\n\nInform the race committee promptly of any request for redress to allow them as\nmuch time as possible to investigate the request.\nPost the hearing schedule on the official notice board as soon as possible after\nthe end of protest time but before the end of the time limit for posting\nnotifications of hearings. Hearings may begin before the protest time expires,\nprovided that the parties to the protest are ready to proceed.\nIf the request for a hearing is from the protest committee, race committee or\ntechnical committee, check if the boats have been notified within the protest\ntime limit.\n\nE.9\n\nThe Hearing\nWhen the protest committee is ready for a hearing, give a copy of the Hearing\nRequest Form to each member. When it is ready to proceed, call the parties,\nusually one from each boat, and interpreters if necessary.\nCheck the alternative penalty list to see whether either party to the hearing took\na penalty.\nIf observers are allowed, the chairman should remind them of the applicable\nrules for observers and have them sign an acknowledgment form.\nThe jury secretary should check that witnesses are available and waiting\noutside when they are called to the hearing. Make sure they cannot hear the\nproceedings before they come in to give their evidence.\nAfter each hearing, record the decision, and file the original protest form, protest\ncommittee members’ notes, and any other papers received during the hearing..\nThe jury secretary should communicate results of hearings and score changes\nafter each hearing. In consultation with the chairman, complete the protest\nresults log and post it on the notice board.\nSome regatta management systems permit posting the decisions from hearings\non-line. Consider how much detail is given, given the large audience for posted\ndecisions.\nOn the last day of the event, there is a 30-minute time limit after a hearing to\nrequest a reopening or redress based on a protest committee’s decision from\neach hearing. Post these decisions and the individual time limits for reopening\nand redress promptly on the official notice board, stamped with the date and\ntime of posting.\nThe chairman should ensure that a full written decision is made available for\nany party to the hearing who requests the decision.\n\nE.5\n\nE.10 After the Last Race\nThe jury secretary, in consultation with the chairman, should ensure that all\nprotests and papers are filed with the organizing club, for reference. They\nshould be kept for at least six months after the event\n\nE.6"
+  },
+  {
+    "id": "F1",
+    "icon": "⚖️",
+    "title": "General Principles & Preparation",
+    "ref": "Chapter F.1–F.8",
+    "content": "F.1\n\nGeneral Principles, Jurisdiction, Preparation\nAlthough already stated in the previous section, it bears repeating that the\nreputation of sailing, and that of the judging community, rests upon the protest\ncommittee making correct and fair decisions.\nThere are four different types of defined hearings within the rules - the protest\nhearing, the redress hearing, a hearing to consider whether a support person has\nbroken a rule, and a misconduct hearing. There are also requests to reopen\nhearings. Misconduct under rules 2 and 69 is covered in the section on rule 2\nand rule 69 of this manual.\nThe rules and procedures for initiating, conducting and deciding these hearings\nare presented in RRS Part 5. However, there are other types of hearings that are\nnot so specifically defined. Under rule N2, an international jury may be asked to\ndecide a matter that directly affects the fairness of the competition. For example,\nthe organizing authority asks the protest committee to decide a question on\neligibility or measurement that is not as a result of a protest or request for redress.\nSuch a request may require obtaining evidence from competitors, officials or\nother participants, so that a hearing may be warranted.\nThe protest committee’s jurisdiction is limited by the rules as defined in the current\nversion of the RRS. A boat’s breach of a government, harbor or maritime agency\nregulation is outside the jurisdiction of the protest committee, unless the\nrequirement for a boat to comply with such a law is included in the notice of race or\nsailing instructions.\nAppendix M Recommendations for Protest Committees provides standard\nprocedures and considerations for hearings. Any hearing should be conducted in\na formal but friendly way, so that the parties feel they had their evidence seriously\nconsidered. In a hearing, the protest committee should be polite but always in\ncontrol.\nProtest committee members should be identified by name tags or name plates.\nIt is often difficult for a party to understand a judge’s name and its spelling when\nthe members quickly introduce themselves.\nMany different room configurations for hearings work well and often depend upon\nthe furniture that is available. Most often the protest committee sits on the side of\nthe table facing the door with the chairman in the middle. Parties should sit\nopposite the chairman. When a witness gives evidence, he should sit between\nthe parties.\nNo alcohol or smoking should be allowed in the protest room. All mobile\ntelephones and recording devices must be switched off. A policy for other\nbeverages such as water, non-alcoholic drinks or coffee is usually established at\nthe initial protest committee meeting. Be aware that space is often l"
+  },
+  {
+    "id": "F9",
+    "icon": "🔍",
+    "title": "Protest Validity & Requirements",
+    "ref": "Chapter F.9",
+    "content": "\nF.9\nThe Protest Hearing\nF.9.1\nProtests by Boats in the Racing Area\nF.9.2\nProtest for Incidents not in the Racing Area\n\nPage\nF3\nF4\nF4\nF5\nF6\nF6\nF6\nF6\nF7\nF7\nF7\nF7\nF8\nF8\nF8\nF9\nF9\nF9\nF9\nF 10\nF 10\nF 11\nF 11\nF 12\nF 13\nF 15\nF 15\n\nF.9.3\nProtest Contents\nF.9.4\nTime Limits to File Protests\nF.9.5\nValidity of the Protest\nF.9.6\nValidity Involving Injury or Damage\nF.10 Hearing procedure\nF.10.1 Taking Evidence and Finding Facts\nF.10.2 Witnesses\nF.10.3 Leading Questions\nF.10.4 Hearsay and Written Evidence\nF.10.5 Photographic and Video Evidence\nF.10.6 Evaluating Evidence\nF.10.7 GPS and Internet Tracking Evidence\nF.11 Finding the Facts\nF.12 Deliberations\nF.13 Resolving Differences Between Protest Committee\nMembers’ Opinions\nF 16\nF.14 Applying the Standard of Proof\nF 17\nF.15 Announcing the Decision\nF 17\nF.16 Protests by the Race Committee or Technical\nF18\nCommittee\nF 18\nF.1\n\nF.17 Protests involving Sailing Instructions\nF 18\nF.18 Protests Concerning Class Rules and Equipment F 18\nF.19 Protests by the Protest Committee\nF 20\nF.20 Requests to Reopen\nF 21\nF.21 Breaches of World Sailing Regulations\nF 23\nF.22 Redress Hearings\nF 23\nF.22.1 Who may request redress?\nF 23\nF.22.2 Parties to a Redress Hearing\nF 24\nF.22.3 Redress Hearing Procedures\nF 25\nF.22.4 Validity of a Request for Redress\nF 25\nF.22.5 Requirements for Redress\nF 26\nF.22.6 Score or Place made Significantly Worse\nF 26\nF.22.7 No Fault of her Own\nF 27\nF.22.8 Improper Action or Omission\nF 27\nF.22.9 Physical Damage and Injury\nF 28\nF.22.10 Giving Help\nF 28\nF.22.11 Penalty Action\nF 28\nF.22.12 Pre-race Requests for Redress\nF 28\nF.22.13 Alleged Error in Scores Determined by the Race\nCommittee\nF 29\nF.22.14 Redress Given\nF 29\nF.23\nHearings Involving Support Persons\nF 30\nF.23.1 Procedures for a Hearing for a Support PersonF 30\nF.23.2 Penalizing a Support Person\nF 31\nF.23.3 Penalizing a Boat for a Breach by a Support\nPerson\nF 32\nF.23.4 Appeal by a Support Person or Boats he\nSupports\nF 33\nF.23.5 Allegations of Misconduct by a Support\nPerson\nF33\n\nF.2\n\nF.1\n\nGeneral Principles, Jurisdiction, Preparation\nAlthough already stated in the previous section, it bears repeating that the\nreputation of sailing, and that of the judging community, rests upon the protest\ncommittee making correct and fair decisions.\nThere are four different types of defined hearings within the rules - the protest\nhearing, the redress hearing, a hearing to consider whether a support person has\nbroken a rule, and a misconduct hearing. There are also requests to reopen\nhearings. Misconduct under rules 2 and 69 is covered in the section on rule 2\nand rule 69 of this manual.\nThe rules and procedures for initiating, conducting and deciding these hearings\nare presented in RRS Part 5. However, there are other types of hearings that are\nnot so specifically defined. Under rule N2, an international jury may be asked to\ndecide a matter that directly affects the fairness of the competition. For example,\nthe organizing authority asks the protest committee to decide a question on\neligibility or measurement that is not as a result of a protest or request for redress.\nSuch a request may require obtaining evidence from competitors, officials or\nother participants, so that a hearing may be warranted.\nThe protest committee’s jurisdiction is limited by the rules as defined in the current\nversion of the RRS. A boat’s breach of a government, harbor or maritime agency\nregulation is outside the jurisdiction of the protest committee, unless the\nrequirement for a boat to comply with such a law is included in the notice of race or\nsailing instructions.\nAppendix M Recommendations for Protest Committees provides standard\nprocedures and considerations for hearings. Any hearing should be conducted in\na formal but friendly way, so that the parties feel they had their evidence seriously\nconsidered. In a hearing, the protest committee should be polite but always in\ncontrol.\nProtest committee members should be identified by name tags or name plates.\nIt is often difficult for a party to understand a judge’s name and its spelling when\nthe members quickly introduce themselves.\nMany different room configurations for hearings work well and often depend upon\nthe furniture that is available. Most often the protest committee sits on the side of\nthe table facing the door with the chairman in the middle. Parties should sit\nopposite the chairman. When a witness gives evidence, he should sit between\nthe parties.\nNo alcohol or smoking should be allowed in the protest room. All mobile\ntelephones and recording devices must be switched off. A policy for other\nbeverages such as water, non-alcoholic drinks or coffee is usually established at\nthe initial protest committee meeting. Be aware that space is often limited and\nthere is a risk of drinks being spilled on computers.\nDress by members of the protest committee should be appropriate for the event\nand its venue. The organizing authority may provide the protest committee with\nF.3\n\nevent clothing. If so, it may be appropriate to wear that in hearings to give the\nimpression that the protest committee operates as part of the team. However, it\nalso may be a problem when the protest committee and the race committee are\nboth wearing the same event clothing, for example at a redress hearing for a boat\nclaiming she was misidentified by the race committee as OCS.\n\nF.1.1 Before the hearing\nIf possible, the chairman should review the hearing request with the other\nmembers of the protest committee well before the hearing. This gives the protest\ncommittee an idea of the issues involved and time to gather relevant documents.\nBefore the parties are called into the room, the chairman or his delegate should\nmake sure that each party has a copy of the hearing request form and is ready\nto proceed. A request for more time to prepare should be considered on its own\nmerit. If a copy of the protest has been available at the protest desk for 30 minutes\nsince the end of protest time, and all the postings were timely, the chairman might\ngive the party only ten minutes. If the protest committee is asking to start the\nhearing before the scheduled time, the chairman might give the protestee more\ntime to prepare a defense. Also ensure that witnesses are standing by outside\nthe protest room.\nIn the hearing, use a personal checklist throughout the process to ensure that\nnothing is missed. The Hearing Checklist may be found in the Document Library\nof the International Judge section of the World Sailing web site).\n\nF.1.2 Conflict of Interest\nAfter the preliminary topics are checked and before the hearing, the members of\nthe protest committee should be introduced to the parties to the hearing. Any\nmember of the protest committee with a conflict of interest shall declare it to the\nparties at this time. Nationality, club membership, or past protest hearing results\ndo not fit within the definition of conflict of interest (COI).\nThe chairman then asks all parties if they consent to the members.\nIf a member of the protest committee has declared a conflict of interest, and,\nknowing the conflict, both parties consent to him being on the protest committee,\nhe may remain.\nIf a party objects to a member of the protest committee based upon a conflict of\ninterest, the chairman should ask the reasons.\nOnce the reasons are given, the parties and the judge are asked to leave the\nroom and the protest committee decides:\n(1) do the objections meet the definition of conflict of interest, and,\n(2) is the conflict of interest significant?\nIf the protest committee concludes:\n(1) the reason for the objections does not meet the definition of conflict of interest,\nor,\n(2) the conflict of interest is not significant,\nF.4\n\nthe judge would remain on the protest committee.\nIf the protest committee decides\n(1) the conflict of interest is significant, and\n(2) a party to the protest does not consent,\nthe judge would not be on the protest committee hearing that protest.\nWhen a request for redress is made under rule 62.1(a) alleging an improper\naction or omission of the race committee, organizing authority, or technical\ncommittee, but not the protest committee, a member of that committee should\nnot be a member of the protest committee hearing that case.\nFurthermore, for World Sailing major events, or for other events as prescribed by\nthe national authority of the venue rule 63.4(b) does not apply and a person who\nmeets the definition conflict of interest, whether or not significant, shall not be a\nmember of the protest committee (rule 63.4(d)).\n\nF.2\n\nRight to be Present\nThe parties to the protest, have the right to be present during the hearing and to\nask questions of any person giving evidence. A party to a hearing is a defined\nterm. Depending on the hearing, it may be: a protestor, a protestee, a boat\nrequesting redress or for which redress is requested, a race committee, a\ntechnical committee, a person against whom an allegation of a breach of rule 69\nis made, a person presenting an allegation of misconduct, or a support person\nand any boat that person supports. The protest committee is never a party.\nWhen a party is absent and it is verified that the required notice of the time and\nplace of the hearing was properly posted, the hearing should normally proceed\nwithout him unless there are special circumstances for the absence. When a\nparty wishes to attend, but finds the time of the hearing inconvenient, such as a\nprior dinner engagement, the protest committee must decide to what extent, if\nany, the competitor can be accommodated.\nWhen the protest claims a breach of a rule of Parts 2, 3 or 4 the representative\nof each boat shall have been on board the boat at the time of the incident, unless\nthere is a good reason for the protest committee to rule otherwise (rule 63.3(a)).\nWhen neither party attends the protest hearing, the committee should first\nconsider whether there was an error in the posting of the time or place of the\nhearing. If the parties were properly notified, the protest committee may act\nwithout the parties. In this case, the protest committee will often conclude they do\nnot have sufficient evidence to find the facts and reach a conclusion that the\nprotest is valid. The hearing is then closed. However, t h e p r o t e s t c o m m i t t e e\nm a y act upon the evidence provided by the protest form and may decide, based\non the balance of probabilities, to disqualify a boat. When this occurs, the protest\ncommittee should be ready to reopen the hearing on request, if good grounds\nare provided for the non-attendance.\nNote that Regulation 22.5.3 changes rule 63.3(a), determining the right to be\npresent, for protest hearings involving categorization of a competitor.\nF.5\n\nF.3\n\nInterpreters\nEnsure that competitors who are not fluent in English understand all of the\nstatements and procedures and are able to communicate in English. Protest\ncommittee members should speak slowly and clearly to assist the party in\nunderstanding what is being said.\nIf a competitor speaks enough English to say he has trouble understanding\nEnglish, ask him to start the hearing without an interpreter. If he is still having\ntrouble understanding, allow an interpreter to be present. Ideally a member of the\nprotest committee would serve as the interpreter. If a coach or team member is\nthe only available interpreter, the chairman must ensure that this does not provide\nan unfair advantage to the party concerned. Remind the interpreter that he or she\nis there as an interpreter, and not as a rules advisor or to clarify a question.\n\nF.4\n\nWithdrawing a Protest or Request\nA boat may not automatically withdraw a protest simply upon request.\nWithdrawing a protest or request for redress requires the approval of the protest\ncommittee under rule 63.1. The protest committee should determine why it is\nbeing withdrawn. If damage or injury is suspected, or the protest committee thinks\nthe protestor has realized he may have broken a rule and is attempting to avoid\na penalty, permission should not be given. In both cases the protestor may be in\nbreach of rule 2 Fair Sailing.\n\nF.5\n\nHearing More Than One Request Concurrently\nWhen there is a protest and a counter-protest, or when several protests appear\nto relate to the same incident, or multiple requests for redress about the same\nissue, they may be heard together in one hearing. If the protest committee has\ndoubts about whether protests or redress requests are about the same incident,\nassume that they are, and start the hearing with all the parties. Provided that at\nleast one is valid, the hearing must proceed.\n\nF.6\n\nWhen A Third Boat, May Have Broken a Rule\nSometimes during a hearing, after hearing the evidence of a witness, it becomes\nclear that the witness, or another boat, might have broken a rule and should be\nincluded as a party in the hearing. This is done by the protest committee stopping\nthe hearing and protesting the other boat.\nWhen doing so, all of the safeguards and validity rules must be met. The protest\ncommittee shall inform the boat that she is being protested, the protest shall be\nin writing and include the required information, the time and place shall be posted,\nand the protested boat must be given time to prepare. The hearing is then started\nanew with all parties being given an opportunity to object to a member having a\nconflict of interest. During the validity phase, the protest committee will extend\nthe time limit for filing the third protest since the information was learned from a\nvalid protest and filed immediately. All evidence previously heard in the absence\nof the witness must be reheard.\nF.6\n\nF.7\n\nObservers\nWorld Sailing's policy is to open hearings to observers if possible. The protest\ncommittee should decide, at their initial meeting, circumstances for opening\nhearings to observers.\nThe advantage of open hearings is that they can greatly enhance the respect for\nand understanding of the hearing system. However, a hearing should not be open\nto observers if any protest committee member is uncomfortable with spectators.\nIt is more important to give a good service to the parties than to educate, impress\nor accommodate people who are not involved. Similarly, a party might ask for a\nhearing to be closed to observers. The protest committee would consider the\nrequest on its merits after the reasons are stated.\nObservers may include persons not connected with the hearing, such as other\ncompetitors, parents, coaches, club members and the press or media. No\nobserver may give evidence as a witness.\nAdvise observers of their obligation to remain silent and not record or photograph\nany part of the hearing, and that they must leave the room while the protest\ncommittee discusses the case and makes a decision.\n\nF.8\n\nWindsurfing, Kiteboard, Super Yachts and Radio Sailing\nAppendices\nFor windsurfing, kiteboard, super yacht and radio sailing competitions, protest\ncommittees need to use the appropriate RRS Appendices which modify any rules\nfor protests, redress and hearings.\n\nF.9\n\nThe Protest Hearing\nThe hearing is now ready to start. Although not a rule, it is good practice for the\nchairman to remind the parties that this is the deadline to meet certain rule\nrequirements, such as correcting the protestor and protestee on their protest\nform, or when Appendix T is in effect, accepting a Post-Race Penalty. The\nchairman then officially declares the hearing started.\n\nF.9.1 Protests by Boats in the Racing Area\nWith regard to the hail of ‘Protest’, there is currently no World Sailing Case to\ninterpret the word ‘reasonable’ in rule 61, ‘… she shall hail ‘Protest’ and\nconspicuously display a red flag at the first reasonable opportunity for each.’\nJudges must use common sense to interpret the requirement, but it does not take\nlong to make a hail. When the protestee states that a hail was not heard, a crew\nmember may be asked to provide evidence as a witness. The protest committee\nwill then weigh the evidence and decide, on a balance of probabilities, whether\nthese requirements were met. The protest committee may not decide, ‘the rule\nrequires a hail - it does not require that it be heard’.\nWhen required, a red flag must be conspicuously displayed at the first reasonable\nopportunity after the incident and until the boat is no longer racing. A protest flag\nmust be seen primarily to be a flag (World Sailing Case 72). No protest flag is\nF.7\n\nrequired from boats less than six metres unless specifically stated in the sailing\ninstructions or in the class rules as allowed by rule 87.\nThere are two exceptions when the protesting boat is not required to hail or\ndisplay a flag at the time of the incident: one is if the incident was an error by the\nother boat in sailing the course; the second is if at the time of the incident it is\nobvious to the protesting boat that a member of either crew is in danger, or that\ninjury or serious damage resulted. In these cases, the boat shall attempt to inform\nthe other boat within the protest time limit.\n\nF.9.2 Protests for Incidents not in the Racing Area\nWhen the protest involves an incident that is not in the racing area, the protestor\nmust inform the protestee of the protest as soon as reasonably possible. This\nmight be the next time they come close on the race course or as soon as\nreasonably possible after coming ashore.\n\nF.9.3 Protest Contents\nThe requirement that the protest identify the incident is the only one of the five\nprotest contents of rule 61.2 that cannot be corrected after the protest is delivered to\nthe race office. There must be adequate information from which the protestee\ncan identify the incident and understand the allegation. When the incident is not\nidentified, the protest will be found invalid.\nOther contents, such as when and where the incident occurred, the protestor and\nprotestee, the rule, and the protestor’s representative have deadlines before or\nduring the hearing.\nThe protest must identify the protestee. In almost all cases, this will be by sail\nnumber or the boat's name. When there is an error in identification, the error may\nbe corrected before the hearing starts. If the correction to the protestee’s identity\nis made after the end of protest time, the protest committee should decide how\nthe other protest requirements of rule 61 will be met for notifying the new party.\n\nF.9.4 Time Limits to File Protests\nThere are two time limits for filing protests: one for incidents observed in the\nracing area, and another for other protests. Rule 61.3 states that the protest shall\nbe delivered to the race office unless a different procedure is stated in the sailing\ninstructions. However, a protest should be considered to be delivered when it is\nreceived by any official acting on behalf of the race committee or protest\ncommittee. If the protest is delivered after the protest time limit, it must still be\naccepted by the official and the time of receipt noted clearly on the first page. The\nofficial must not refuse a protest because the time limit has expired. The sailing\ninstructions may change a rule and may provide for special procedures for\ndelivering a protest.\nIf the protest is delivered late, rule 61.3 requires the protest committee to decide\nwhether there is good reason for it being delivered after the protest time limit.\nWhen there is a good reason, the protest committee shall extend the time limit\nand record its action.\nF.8\n\nF.9.5 Validity of the Protest\nThe protest committee must address the validity of a protest before the hearing\ncan proceed. It is not sufficient to simply obtain the protestor's opinion that the\nprotest is valid. This may require that the chairman investigate deeper if the\nresponse to the question, ‘When did you hail protest?’ is ‘Immediately.’ Give both\nparties the opportunity to give evidence on the validity requirements.\nOften after the evidence, it is clear that the protest is valid. Then a simple nod of\nagreement by the judges to the chairman is enough to announce the protest is\nvalid. If there is conflicting evidence, ask the parties and any observers to leave\nthe room while the protest committee deliberates. The protest committee’s\ndecision is based upon a balance of probabilities.\nWhen the protest or request is valid, the hearing proceeds. When the protest\ndoes not meet the requirements for validity, the committee shall declare it invalid\nand close the hearing. The facts that lead to the conclusion and decision that the\nprotest was invalid should be written on the hearing decision form.\n\nF.9.6 Validity Involving Injury or Damage\nIf a protest is invalid, but the incident may have resulted in injury or serious\ndamage, the protest committee may file a protest and proceed with the hearing.\nGetting the necessary evidence may involve a walk to the boat park to view\ndamage to a boat or gathering evidence about an injured competitor. If the protest\ncommittee later finds out that the damage was not serious, or the competitor was\nnot injured, the protest committee should reopen the hearing of its protest and\ncorrect its error by deciding the protest was invalid.\n\nF.10 Hearing Procedure\nF.10.1 Taking Evidence and Finding Facts\nAfter the protest is found to be valid, the protest committee takes the evidence of\neach party and witness. Appendix M gives the normal order of conducting a\nhearing. Since it is advisory, the recommended procedures may be changed if\nneeded.\nThe chairman should explain that the procedure will permit each party to give his\nevidence when asked. Do not allow the parties to interrupt each other’s\nstatements. Allow only an interruption by a party or protest committee member\nto say he did not hear or did not understand.\nAs the evidence is presented, each judge should individually develop their\npersonal understanding of how the incident developed, the rules that apply and\nthe facts needed to reach their conclusion. When it is time for the protest\ncommittee’s questions, members should limit their questions to facts that have\nnot already been asked and answered in earlier evidence. For example, if the list\nof rules includes 12, 11 and 15, a judge will ask questions to determine when an\noverlap occurred, how close the boats were and how much time went by before\na boat altered course.\nF.9\n\nF.10.2 Witnesses\nRule 63.6 requires the protest committee to take the evidence from the parties and\ntheir witnesses. When witnesses are called, a member of the protest committee\nor the protest committee secretary should retrieve the witness. This eliminates any\ncoaching of the witnesses after the hearing has started. If a party asks if more\nwitnesses are needed, the chairman should respond, ‘it is up to you to decide if\nthe witness can provide relevant additional evidence’.\nAllow witnesses to show the incident with model boats from their own angle, even\nif this is more difficult for judges. Not all people are good at mental rotation of\nobjects in space, and the requirement to rotate their presentation could interfere with\ntheir recall of the incident.\nAsking the parties and witnesses to keep the assigned colors of models to the\nboats involved in the protest can help to identify the boats correctly. This can be\ndone if, before the witness enters the room, the previous situation is broken down\nand all of the same color boats are placed in front of the assigned party.\nUnder rule 63.6, a member of the protest committee who saw the incident shall\nstate that fact while the parties are present and then may give evidence. If that\nmember knows something that is relevant but was not revealed by the evidence\nfrom the parties and witnesses, he should volunteer to give that evidence in the\npresence of the parties. Never introduce new evidence from any source without\nthe parties present.\n\nF.10.3 Leading Questions\nA leading question is a question in the form of a statement inviting agreement.\nJudges need to recognize leading questions and weigh the answers accordingly.\nExamples or leading questions include:\nYou saw me steering a straight course, didn't you?, or Do you agree that as I was\nsailing toward the mark, I had a half boat length overlap?\nHad the boats reached the zone when the overlap was established? This\nquestion accepts the overlap to be true. A better question would be, position the\ntwo boats relative to each other when the lead boat got to the zone.\nHow many lengths, 1, 2, or 3? A better question would just be How many\nlengths? Avoid multiple choice questions.\nThe question, how far apart? will lead witnesses to respond with a greater\nnumber than the question, how close? A better question would be, position the\ntwo boats relative to each other and estimate the distance between them.\nThe chairman should discourage leading questions and advise parties how to\nrephrase the question.\n\nF.10.4 Hearsay and Written Evidence\nThe term ‘hearsay evidence’ is a technical legal term meaning evidence which is\ngiven by a person who has no direct knowledge; he has simply heard or received"
+  },
+  {
+    "id": "F10",
+    "icon": "👁️",
+    "title": "Taking Evidence",
+    "ref": "Chapter F.10",
+    "content": "\nF.10\n\nit from another party. Hearsay evidence can be in the form of a witness telling\nwhat someone told him, or written reports where the author is not called as a\nwitness, or audio or video or tracking information that is not authenticated, or a\nwritten statement of a person not called at a hearing.\nIt is common that a party will make a statement or produce a document that is\nhearsay, in that the maker of the statement is not going to give live evidence. The\ndifficulty with hearsay evidence is that it can be hard to challenge or to examine\nits validity or credibility. Where possible, attempt to have the person who provided\nthe written statement attend by telephone or video conference.\nRule 63.6(a) changed in the 2021-24 racing rules so that the protest committee\nshall take hearsay evidence. However, it must give it the weight it considers\nappropriate. Different types of hearsay may be given more or less weight. For\nexample, mark rounding sheets, where the person who recorded the information\nis not called, should normally be given significant weight. Similarly, tracking\ninformation or photographs or video, without calling a witness to authenticate the\ninformation, can be given significant weight in the sense that the information is\nconsidered to be authentic. The reliability of the information and the weight to be\ngiven to it must be considered separately. A letter or an email from the technical\ncommittee or from a class association about facts that are generally within the\nauthor’s knowledge should be given significant weight, but not conclusive weight.\nOn the other hand, hearsay evidence of the description of a racing incident\nshould be given little or no weight.\n\nF.10.5 Photographic and Video Evidence\nPhotographic and video recordings may be accepted as evidence at a hearing and can\nsometimes be useful. However, there are limitations and problems, and these should be\nappreciated by the protest committee.\nWhen a video recording is to be shown to the protest committee, the party\npresenting the evidence should arrange the necessary equipment and provide\nan operator, preferably the person who made the recording,\nThe party bringing the video evidence should have seen it before the hearing and\nprovide reasons why he believes it will assist the protest committee.\nIt is usually preferable to view the video after the parties have presented their\nevidence.\nAllow the recording to be viewed first without comment, then with the comments of\nthe party bringing the evidence, then with those of the other party. Questions may\nbe asked in the normal way by the parties and the protest committee members.\nThe depth of field of any camera is poor and with a telephoto lens, it is nonexistent. When, for example, the camera's view is at right angles to the courses of\ntwo overlapped boats, it is impossible to assess the distance between them.\nConversely, when the camera is directly ahead or astern, it is impossible to see\nwhen an overlap begins or even if one exists, unless it is substantial. Keep these\nlimitations firmly in mind."
+  },
+  {
+    "id": "F11",
+    "icon": "📝",
+    "title": "Finding Facts, Deliberation & Decision",
+    "ref": "Chapter F.11–F.15",
+    "content": "\nF.11\n\nUse the first viewing of the recording to become familiar with the scene. Where\nwas the camera in relation to the boat? What was the angle and distance\nbetween them? Was the camera's platform moving? If so, in what direction and\nhow fast? Is the angle changing as the boats approach the critical point? (Beware\nof a radical change caused by fast panning of the camera.) Did the camera\nhave an unrestricted view throughout? If not, how much does that diminish the\nvalue of the evidence? Full orientation may require several viewings; take the\ntime necessary.\nSince a typical incident is brief, view it as many times as needed to be sure that\neach judge has extracted all the information needed. Also, be sure that each party\nhas an equal opportunity to point out what he believes the video shows and does\nnot show.\nHold the equipment in the hearing room or obtain an electronic copy of the video\nfile until the end of the hearing and through the deliberation, for review to settle\nquestions as to just what fact or facts, if any, it helps to establish. It is sometimes\nuseful to step through a video file frame by frame. Also, one of the members may\nhave noticed something that the others did not.\nDo not expect too much from the recording. Only occasionally, from a lucky\ncamera angle, will it clearly establish the central fact of an incident. But, even if it\ndoes no more than settle one disputed point, that alone will help in reaching a\ncorrect decision.\nIf the protest committee views video evidence prior to the hearing, the video must\nbe shown during the hearing, giving each party the opportunity to comment on\nand question the evidence.\n\nF.10.6 Evaluating Evidence\nHuman perception begins with expectation based on prior knowledge. Persons\nwith good race memory know where to look at the time of the incident and are\nable to recall incidents with good detail, including nearby boats, positions and\nrelative speeds of boats, and the sequence of events. Competitors are usually\ngood at judging distances between boats. However, people are not good at\njudging time durations. With good rules knowledge also, the witness will present\nevidence that is likely to fit within the requirements of the rule believed to apply.\nPersons who do not know the rules well may miss important details on boat\npositioning that are needed to find facts\nBe careful about making judgements about the credibility of evidence based on\nstyle of presentation. Evidence from witnesses who express their opinions\nconfidently is often given more weight than that from those who are less\nconfident; but their confidence may not be related to the accuracy of their recall.\n\nF.10.7 GPS and Internet Tracking Evidence\nGPS and internet location and tracking have become common place and almost\ntaken for granted. However, when GPS information such as histories, or internet\ntracking information is presented as evidence at a protest hearing, a deeper\nF.12\n\nunderstanding is necessary to apply the appropriate weight.\n\nSingle GPS location history (Snail Trail)\nAll boat navigation GPS systems offer the ability to save and download the\nperformance for later review. Whether this single-source information can be\nuseful at a hearing depends very much on the issues. Although accurate, the\nboat’s positions alone usually do not offer much useful information. It does not\ninclude information about other boats’ positions, where a mark was located, or\nthe ends of a starting line. Information on boat speed may be helpful in\ndetermining wind speed.\nIf the hearing is about a rule 19.2(c) protest against a boat that sailed into an\ninside overlap between the protesting boat and a nondescriptive shore some\nkilometers away, the GPS trail may offer useful information on the water depth\nand the distance inshore where the depth might be unsafe for sailing.\nIn all cases, the location of the GPS transmitter and sampling rate should be\nobtained by the protest committee.\n\nInternet Tracking & Application Display Information\nTo attract more visitors to regatta websites, commercial tracking systems are\nused to create publicity and promote the event. Small GPS position transmitters\n(trackers) are placed on boats or clipped to a crewmember as well as marks and\nstarting lines. At local events, this information is transmitted to a shore base. In\noffshore races, the information is sent via satellite to the race headquarters. In\nboth cases the raw data are entered into a display application and shown on the\nregatta's website. Races and individual teams can be followed over the internet\nfrom anywhere in the world.\nThe tracks shown in the graphical displays are not always based only on accurate\nposition fixes. If position fixes from trackers are missing or if the software thinks\nthey are out of position, the software might estimate the missing position fixes and\neliminate fixes that look to be out of position. This can result in estimated tracks\nshown in the graphical display that may be different from the real track sailed.\nWhen ashore, sailors and coaches will review the race using the tracking system.\nIf there was an incident on the water, the tracking information may be presented\nas evidence in a protest hearing. Race officers will sometimes compare the\ntracking information with their finishing sheets to locate a missing boat or answer\na scoring query that may lead to a request for redress.\nWhile the core technology in use by the different tracking service providers is\nbasically the same, there are many different approaches in the final delivery of\nthe tracking system product. Every tracking service provider uses GNSS\nreceivers to capture the basic geolocation data at regular intervals. The minimum\nraw data captured by the tracker for each position fix includes latitude, longitude,\ntimestamp and tracker ID. The geographic positions are updated repeatedly\nwithin the GNSS receiver up to 10 times per second, but the frequency of fixes\navailable from (or published by) the tracking system may vary from one or two\nF.13\n\nfixes per second to up to one per hour or (s)lower for oceanic races.\n\nFrequently Asked Questions\nHow often is the boat’s position sampled? Answer: although the GPS can sample\n10 times per second, the presentation is seldom that often. To save space in the\nmemory chip, or to save money in the satellite data transfer, not all positions are\ntransmitted or displayed. In a thirty-minute dinghy race, that might be only once\nper second. In a transoceanic race, that might be once every ten or thirty minutes.\nHow accurate are the positions? Answer: there are many different factors\naffecting the accuracy of the position such as cost of the GPS unit and\natmospheric conditions. Typically, 95% of the time, the accuracy is 2 to 8 meters.\nAre the marks of the course tracked? Answer: most of the time. Race committees\nwill install trackers on the marks of the course, including both ends of the start\nand finish lines. This should be confirmed by the regatta’s Tracking Team. Race\ncommittees do not usually place trackers on permanent or government buoys.\nCan the tracking system show overlaps and collisions? Answer: competitors will\nsometimes present tracking information in a hearing to show a collision or an\noverlap at the zone. In almost every case, the information from the tracking\nsystem will be inconclusive by itself. The graphical representation of the boat is\nalmost never to scale. You can test this by comparing the length of the boat icon\nat various levels of zoom. In the 2016 Olympic Games, Lasers sometimes\nappeared to be over 20 meters long.\n\nOther considerations in a hearing.\nSince competitors are entitled to present evidence that they consider relevant,\nthey may bring animated video clips of an incident they saw in the tracking\nsystem. The competitor will be basing his presentation on derived information\nand it is important for the judges to know what it real and what is virtual.\nBecause the enhanced graphics can lead competitors and judges to the wrong\nconclusions, there are a few things the protest committee can do to manage the\npresentation of tracking data in a hearing.\nBefore the first race, the protest committee should discuss the tracking system\nbeing used. Review the instructions, verbal or written, that the sailors receive\nabout the installation of the trackers on the boat. Know where the trackers are\nintended to be installed on the boats.\nReview the tracker application. Zoom in and zoom out, observe the scaling, start\nand stop the race display, and know how to declutter the screen by removing\nboats and tags. Determine the accuracy of the tracking units and what averaging\nor smoothing is applied to the information.\nAsk the provider to explain the depiction of the three-length zone.\nAsk the race committee if trackers will be installed on marks and race committee\nboats and where they will be located.\nIt is the responsibility of the party to provide the equipment to display tracking\nF.14\n\ndata (see RRS M7, first point).\nDuring a hearing, get the verbal evidence from the parties first, before the\npresentation of the tracking clips. Let the parties question each other’s verbal\nevidence. Make sure the protest committee understands the facts from the verbal\nevidence. Tracking data is always easier to assess when it is presented in\nsupport of the description of the incident by the parties.\nNormally judges would not view tracking information before the hearing. If the\ntracking information is seen by a judge without the parties present, it must also\nbe included either as evidence submitted by a party, or by the protest committee.\n\nF.11 Finding the Facts\nIt is an unalterable responsibility of the protest committee to establish the facts\nthat the decision will be based upon, even when the parties present widely differing\nevidence. Varying evidence is common and reflects different perspectives on the\nincident. If one party says the boats were one meter apart while the other says\nthree meters apart, the protest committee must decide which opinion is more\ncredible. When all the evidence is reviewed, the distance that is determined will\nbecome a ‘fact’ that the decision is based upon, even if that distance is neither\none meter nor three meters.\nIn almost all cases, the differences of opinion are settled by the weight of the\nevidence. The racing rules do not give the onus of proof to one boat or the other,\nexcept to resolve doubt in rule 18.2(e). Port is not required to prove she kept\nclear of starboard. A protest committee is required to consider all the evidence,\nconsider who was in the best position to determine what happened, determine\nwhich evidence is more credible, and then decide the facts of the incident on a\nbalance of probabilities.\n\nF.12 Deliberations\nOnce all the evidence is taken, it is the protest committee’s responsibility to find\nthe facts and make a decision. Often all members have individually reached the\nsame facts and conclusion. The chairman can save considerable time by asking\neach member for their conclusion. If everyone has come to the same conclusion,\nthen writing the facts and conclusions goes very quickly. Finding that the\nmembers have not all reached the same conclusion allows the committee to\nquickly focus on the differences.\nAnother method of proceeding is for the scribe to write during the hearing the\npoints he considers to be the facts. After each judge has expressed their\nconclusion, and the differences have been resolved, the scribe would read the\nfacts. Should a member not agree on some point or believe there is an omission\nof an essential fact, there is a discussion on that point to reach an agreement.\nApply the relevant rules to these facts and identify any missing ones. Then write\nthe rules applicable, conclusion and decision. Use the Preferred Standard\nWording in the World Sailing’s International Judge Document Library. Then read\nout the facts found, conclusion and decision for a final review.\nF.15\n\nAll decisions are based on a balance of probabilities, unless the rule provides a\ndifferent standard of proof.\n\nF.13 Resolving Differences Between Protest Committee Members’\nOpinions\nDecisions of the protest committee are made by a majority vote of all members.\nTry to obtain agreement among the protest committee members. Establish the\nmost likely scenario by weighing the evidence. If necessary, recall the parties to\nobtain any missing information or further clarification. Once any differences of\nopinions among the protest committee members have been resolved, use the\nprocedure in the previous paragraph. A vote can be useful, especially after a\nreasonable time has been allowed for discussion and a variety of views persist.\nWhen there is an equal division of votes cast, the chairman may cast an additional\nvote.\nWhen not all members are in agreement, the dissenter should be given an\nopportunity to state his point of view, and to try to persuade the other members.\nIf a member maintains a strong minority opinion, it could be classified and\nresolved, as Level 1 or Level 2:\nLevel 1: Usually, after thorough discussion, a member of the protest committee\nwho does not agree with the majority accepts the decision of the majority. This\nshould be simply recorded as a majority decision on the protest form without\nstating who the judge(s) in the minority is/are.\nLevel 2: If the judges in the minority feel strongly that they do not wish to be\nassociated with the decision, they have the right to be named as dissenting\njudges when the decision is announced and to have their names recorded on the\nform.\nRegardless of any personal disagreement with the protest committee’s final\ndecision, a judge is duty-bound to uphold it. A judge must refrain from criticizing\nthe decision of a protest committee in public, whether or not he was a member.\nCriticism of a decision may be misconduct or ‘inadequate conduct’ in terms of\nRegulation 32, depending on the manner, time and place in which the criticism is\nexpressed.\nMembers may discuss and criticize a decision with other judges in private for the\npurpose of persuading a protest committee to reconsider the decision and reopen\na hearing or for the purpose of education. However, any discussion with competitors,\ncoaches or the public of a difference of opinions within the protest committee will\nnever be appropriate conduct. It could only serve to inflame a situation and\ndamage relationships with other officials. If a judge does not wish to associate\nhimself with a decision, then the proper course of action is to exercise the right to\nbe named as a dissenting member in the decision and then refer any queries to\nthe published decision only.\nThe chairman must include details of the case in his regatta report if any member\nrequests to be named as dissenting."
+  },
+  {
+    "id": "F20",
+    "icon": "🔄",
+    "title": "Requests to Reopen",
+    "ref": "Chapter F.20",
+    "content": "\nF.20\n\nThe members giving evidence may participate in the deliberations and the\ndecision, since they have no conflict of interest. They are a part of an independent\nbody, with nothing to gain or lose from the decision. Such witnesses who stay for\nthe decision must not give any new evidence after the parties have been\ndismissed.\nRule N1.6 provides that the protest committee remains properly constituted as an\ninternational jury as long as 3 members remain and at least 2 members are\nInternational Judges.\n\nF.20 Requests to Reopen\nAny party to the hearing may request a re-opening of the hearing. In cases where\nthe request for redress was from the race committee or the technical committee or\nconsidered by the protest committee under rule 60.3(b), parties are boats for\nwhich redress is requested. All other boats are ‘affected’ boats, but they are not\nparties.\nThe word ‘may’ in the first sentence of rule 66 means that there is no obligation\non the protest committee to reopen. A protest committee may re-open a hearing\nwhen either one of the two requirements of rule 66 is met. One is when the protest\ncommittee decides that it may have made a significant error. The other is when\nsignificant new evidence which was not available at the time of the original hearing\nbecomes available within a reasonable time.\nThat said, it is not in the best interests of the event to allow an unsuccessful party\na reopening only for the purpose of re-stating an argument or evidence that had\nalready been considered. In those circumstances, a reopening would be\nunreasonably burdensome to the protest committee and to the other parties\ninvolved.\nErrors by the protest committee that should lead to a reopening include improper\nprocedures or misapplication of a rule. The protest committee might decide that\na key conclusion was not supported by the facts. More often, a hearing is\nreopened when a mistake was made in interpretating the applicable rules.\nFor a hearing to be reopened to consider new evidence, the evidence must be\nboth new and significant. Rule M4 and World Sailing Case 115 provide an\ninterpretation of the word ‘new’ as used in rule 66:\nEvidence is ‘new’\n•\n•\n•\n\nif it was not reasonably possible for the party asking for the reopening to have\ndiscovered the evidence before the original hearing;\nif the protest committee is satisfied that before the original hearing the\nevidence was diligently but unsuccessfully sought by the party asking for the\nreopening; or\nif the protest committee learns from any source that the evidence was not\navailable to the parties or to the committee at the time of the original hearing.\n\nSignificant evidence is evidence that bears directly and substantially upon the\nspecific matter under consideration, and which is neither cumulative nor"
+  },
+  {
+    "id": "F22",
+    "icon": "⚖️",
+    "title": "Redress Hearings",
+    "ref": "Chapter F.22",
+    "content": "\nF.22\n\nIf the protest committee decides on its own that it may have made a significant\nerror, it may, without taking any new evidence, revise its decision without the\nparties present. There is no time limit for the protest committee to reconsider its\ndecision. When the protest committee changes its decision, it shall inform the\nparties in accordance with rule 65.1. This can be done by posting the revised\ndecision or by delivering copies of the decision to the parties to the hearing.\nIt is always up to the protest committee to decide whether a request to re-open\nis granted. The examples above of situations where a protest committee may\ngrant a reopening, are only a guide, and should only be used as such.\nThe protest committee may also reopen a hearing under rule 63.3(b) when it has\ndecided a protest without a party present, but later finds that the party was\nunavoidably absent. That hearing would begin anew, rehearing all evidence\npreviously presented.\nIf the national authority’s decision in an appeal is to reopen the hearing using rule\n71.2 or rule R5, the reopening proceeds with the evidence and witnesses that\nthe parties bring, and with any other evidence the protest committee considers\nnecessary.\nIf the protest committee decides there is sufficient reason to reopen, it must notify\nthe parties of its decision. When the hearing will be reopened, the protest\ncommittee must provide the same notification that is required for a protest hearing.\nIn addition, when the reopening is based only on new evidence, a majority of the\nmembers of the protest committee shall, if possible, be members of the original\nprotest committee. However, if the reopening is based on a significant error, the\nprotest committee shall, if practicable, have at least one new member. However,\nto avoid the perceptions that the old protest committee is reviewing itself,\nreplacing more members, but not all, should be considered.\nAt a reopened hearing, the procedural rules of Part 5 apply, particularly, rule 63.6.\nThe protest committee shall take the evidence of the parties present at the hearing\nand of their witnesses and other evidence it considers necessary. Parties may also\nask questions. The protest committee proceeds as it would in any other hearing.\n\nF.21 Breaches of World Sailing Regulations\nRule 6 lists World Sailing Regulations that competitors, boat owners and support\npersons shall comply with. Check each regulation before proceeding with any\nprotest for breaches.\n\nF.22 Redress Hearings\nA boat whose score or place in a race or series that has been made significantly\nworse through no fault of her own may, in circumstances complying with rule 62.1,\nbe granted redress through a hearing.\n\nF.22.1 Who May Request Redress?\nA boat (rule 60.1(b))\nThe introduction to the RRS, Terminology, states that a ‘boat’ means a\nF.23\n\nsailboat and the crew on board. Normally boats request redress for\nthemselves; however, this is not a requirement of the rules. A boat or its crew\nmay request redress for another boat. Rule 60.2(b) requires the protest\ncommittee to include all boats affected in a redress award, whether or not\nthey asked for redress.\nThe race committee (rule 60.2(b))\nThe race committee may request redress for a boat that it believes may be\nentitled to it. Often it is to correct any errors it has made that may have affected\na boat or boats.\nThe protest committee (rule 60.3(b))\nThe protest committee may call a hearing based on a report or information\nreceived from any source, including invalid protests or requests for redress,\nor from any party, whether interested or not.\nThe protest committee may also grant redress as part of its decision in a\nprotest hearing if it decides a boat is entitled to redress under rule 62, whether\nor not they asked for redress. (rule 64.2).\nThe technical committee (rule 60.4(b))\nThe technical committee may request redress for a boat that it believes may\nbe entitled to it. Often it is to correct any errors it has made that may have\naffected a boat or boats.\n\nF.22.2 Parties to a Redress Hearing\nThe definition of party to a hearing includes a boat requesting redress or for which\nredress is requested by the race committee under rule 60.2(b), or the technical\ncommittee under rule 60.4(b), or considered by the protest committee under rule\n60.3(b). In such cases, all boats for which redress is being considered are entitled\nto attend the hearing.\nSuch a large hearing can be difficult to manage. First, find a space large enough\nto allow all parties to be present. This may mean gathering outside in a quiet\ncorner of the boat park. Second, allow all parties who wish to give evidence to do\nso. Third, have the protest committee chairman explain that everyone is going to\nget a chance to speak, but ask the parties not to restate evidence that has already\nbeen presented. With this request, the result is often that the first few parties will\nexplain their reasons for requesting redress, then most of the rest of the\nwitnesses will respond, ‘I have the same evidence and opinion.’\nIn requests for redress under rule 62.1(a) the race committee, the technical\ncommittee or the organizing authority who made the request is a party to the\nhearing.\nAfter deciding to grant redress and considering what redress is to be granted, the\nprotest committee may conclude that other boats are also entitled to redress,\neven if they were not parties to the request for redress. If more investigation is\nneeded and time permits, the hearing could be adjourned, and a new hearing\nF.24\n\nstarted, after notifying all boats which could be entitled to redress. As all parties\nto the redress hearing must be notified of the time and place of the hearing, proper\nnotification must be posted on the official notice board. In this situation, it may\nalso be beneficial to phone, e-mail or SMS all the parties, particularly if the time\nfor posting protest notices has expired. This hearing must restart from the\nbeginning as the new parties to the hearing are entitled to hear all the evidence.\nMake sure that the hearing room is large enough to accommodate all parties,\nwhich could mean only one representative from each boat.\n\nF.22.3 Redress Hearing Procedures\nThe hearing of requests for redress falls into four parts:\nValidity\nCompliance\nThe incident\nRedress given\nValidity is considered first. If the request is invalid, the parties should be informed\nof this and the hearing closed.\nIf valid, the hearing should proceed to consider whether the request complies with\nthe requirements of rule 62.1. If the request does not comply, the parties should\nbe informed at this time and the hearing closed.\nIf the request complies, the protest committee then considers the incident and\nwhether the boat is entitled to redress or not. If not, the parties are informed of\nthe facts found and that redress is not given, and the hearing is closed.\nIf the protest committee decides that redress is to be given, it now decides what\nredress would be appropriate. Once decided, the parties should be informed of\nthe decision and the hearing closed.\n\nF.22.4 Validity of a Request for Redress\nAt a hearing to consider a request for redress, the protest committee must first\naddress the validity of the request.\nThe request must be in writing and state the reason for making it.\nNo protest flag is required, and there is no obligation for the boat requesting\nredress to inform the race committee. Match racing and fleet-umpired races, like\nmedal races under Addendum Q have different requirements.\nAny protest by the boat against the organizing authority, the race committee, the\nprotest committee or the technical committee may be accepted as a request for\nredress, provided it complies with the requirements of rule 62.2.\nThere are two time limits for filing requests for redress in rule 62.2. For an incident\nin the racing area, a request for redress must be delivered to the race office no\nlater than the protest time limit or two hours after the incident, whichever is the\nlater. Other requests shall be delivered as soon as possible after learning of the\nreason for the request.\nF.25\n\nThe time of the incident depends on the circumstances of each request. In the\ncase of a scoring error, or where a boat has been scored OCS or similar, the time\nof the incident would usually be when the results were posted, as this could be\nthe first reasonable opportunity for the party to know the score. However, if the\nresults were not posted within a reasonable time, the time of the incident could\nbe considered to be even later still.\nRequests for redress by the race committee, the technical committee or the\nprotest committee on behalf of boats must be delivered within the relevant time\nlimit of rule 62.2.\nWhen a request for redress is received outside the time limit, the protest committee\nmust extend the time limit if it decides that there is a good reason to do so. The\nextension would normally be to the first reasonable opportunity after the boat or\nthe committee making the request becomes aware of the situation.\n\nF.22.5 Requirements for Redress\nWhen the request for redress is accepted as valid, the protest committee must now\ndecide whether the request complies with the requirements of rule 62, namely\nwhether the boat's score or place in a race or series has been or may be, through\nno fault of her own, made significantly worse by:\na) an improper action or omission of the race committee, protest committee\norganizing authority or technical committee for the event, but not by a protest\ncommittee decision when the boat was a party to the hearing;\nb) injury or physical damage because of the action of a boat that was breaking\na rule of Part 2 and took an appropriate penalty or was penalized, or of a\nvessel not racing that was required to keep clear or is determined to be at\nfault under the IRPCAS or a government right-of-way rule;\nc) giving help (except to herself or her crew) in compliance with rule 1.1; or\nd) an action of another boat or a crew member or"
+  },
+  {
+    "id": "H",
+    "icon": "🤝",
+    "title": "Arbitration (Appendix T)",
+    "ref": "Chapter H",
+    "content": "H Appendix T Arbitration\nContents\nH.1\nH.2\nH.3\nH.4\nH.5\nH.6\n\nIntroduction\nThe Arbitrator\nThe Post-Race Penalty\nPrinciples of Arbitration\nThe Procedures\nNo Appeal\n\nPage\nH1\nH1\nH2\nH3\nH3\nH6\n\nH.1 Introduction\nAppendix T Arbitration can eliminate the need for protest hearings by offering a\nsimplified review of the protest between the two parties and an experienced judge.\nAfter hearing both parties the judge offers an opinion of how the protest committee\nis likely to decide the protest. The appendix then offers ways to settle the dispute,\nallow a boat that broke a rule a lesser penalty than disqualification, and conclude\nthe protest.\nAppendix T Arbitration applies when so stated in the notice of race or sailing\ninstructions. It has two parts: the Post-Race Penalty; and the arbitration meetings.\nPost-Race Penalty: A boat may take a post-race penalty for breaking a rule of Part\n2 or rule 31 provided the requirements of rule 44.1(b) are met. If a boat decides\nshe has broken a rule, she may choose to accept a 30% scoring penalty. This\ndecision may be made at the end of the race, before or during the arbitration\nmeeting, and up to the start of a protest hearing.\nArbitration Meeting: The second part is an arbitration meeting of the protestor and\nthe protestee with the arbitrator, who is an experienced judge. The sailors each\ndescribe what happened on the water, and the judge then gives an opinion about\nthe validity of the protest, and which boat, if any, broke a rule.\nRegardless of whether a Post-Race Penalty is taken, a protestor may ask to\nwithdraw the protest. The judge who arbitrated may then act on behalf of the\nprotest committee and in accordance with normal jury policy, to allow the\nwithdrawal.\n\nH.2\n\nThe Arbitrator\nThe judge who will conduct an arbitration meeting should be highly experienced\nwith a good knowledge of the rules. The individual must think and make decisions\nquickly and have the respect of the parties. He should have a thorough\nunderstanding of RRS Appendix T, validity, the rules of Part 2, rule 31, and rule\n44.1(b). An excellent and thoughtful judge who needs time to reach a decision may\nH.1\n\nnot make the best judge to select to arbitrate, and will usually be more valuable in\nhearings deciding the complex protests.\nWhile it is not stated in the rules, where an international jury has been appointed,\njudges who conduct arbitration meetings should be members of the protest\ncommittee.\nIf a protest is not withdrawn, the judge who arbitrated may be a member of the\nprotest committee that hears the protest.\n\nH.3\n\nThe Post-Race Penalty\nAppendix T must be included as a rule by the notice of race or the sailing\ninstructions to permit the Post-Race Penalty and arbitration meeting.\nThe Post-Race Penalty system and arbitration meeting work only if the Post-Race\nPenalty is less than the disqualification that a boat would receive in a subsequent\nprotest hearing, and more severe than any penalty that is available to the boat on\nthe water at the time of the incident.\nA severe penalty often results in a competitor refusing to accept arbitration and\ninstead deciding to take a chance on avoiding a DSQ in a hearing. Mathematically,\nthe worse the boat’s finishing position in the race, the less advantage taking the\nPost-Race Penalty provides over a possible disqualification in a hearing. Likewise,\na lesser penalty encourages a boat not to do a turns penalty on the water in the\nhope that the protesting boat will decide to drop her protest.\nThe Appendix T Post-Race Penalty is 30% of the score for DNF, rounded to the\nnearest whole number. The organizing authority may change the penalty by\nmodifying T1(b) in the sailing instructions by changing the percentage, or by\nproviding for a Post-Race Penalty that is a set points penalty.\nAs with other scoring penalties, there is no change to the finishing order of other\nboats in the race. Therefore, two boats may receive the same score.\nThe Appendix T Post-Race Penalty is available to any boat, when appropriate. A\nboat may not take a penalty other than retirement if she caused injury or serious\ndamage, or if she has gained a significant advantage from her breach. See rule\nT1(a) and rule 44.1(b).\nA basic principle under Sportsmanship and the Rules is that when competitors\nbreak a rule, they will promptly take a penalty. If the protest committee concludes\nthat it is clearly established that a boat knowingly broke a rule and did not promptly\ntake a penalty, the boat broke rule 2. Since rule 2 is a rule in Part 1, the Post-Race\nPenalty is not available to her.\nSome advantages of the Post-Race Penalty in Appendix T are:\nH.2\n\n•\n•\n•\n\nH.4\n\nA boat may take a penalty instead of retiring (RET) after coming ashore, when she\nrealizes she broke one or more rules of Part 2 or rule 31.\nA boat that takes a Post-Race Penalty may not be penalized further unless a\nprotest committee finds that there was injury or serious damage, or she gained a\nsignificant advantage from her breach.\nA boat may take the Post-Race Penalty before, during or after the arbitration\nmeeting, and up until the beginning of a protest hearing involving the incident.\n\nPrinciples of Arbitration\nArbitration takes place after a written protest has been delivered, but prior to the\nprotest hearing. The judge’s role at an arbitration meeting is to give an opinion as\nto what the protest committee is likely to decide. Even though the process is\ninformal, and the boats are not bound by the opinion of the judge, all the\nsafeguards built into the rules of Part 5 for procedures for protest hearings and\ndecisions remain in place. Even if a party decides to take a Post-Race Penalty, the\nprotest remains and rule 63.1 requires that it must be heard by the protest\ncommittee. If the protestor requests to withdraw the protest, the judge who\narbitrated may then act on behalf of the protest committee and, in accordance with\nnormal jury policy, allow the withdrawal.\nArbitration is appropriate when:\n• rule 44.1(b) does not apply: No boat caused injury or serious damage in the\nincident, and no boat gained a significant advantage in the race or series by\nher breach, even if she took a penalty.\n• the incident is limited to the rules of Part 2 or rule 31. If it becomes clear that\nother rules are applicable or another boat may be involved, the judge will close\nthe meeting and send the protest to the protest committee;\n• the incident involves only two boats. A protest involving three or more boats\nmay be too complex to work through in arbitration of less than 15 minutes.\n• The arbitration meeting proceeds with the understanding that the protestor\nmight not ask to withdraw the protest, and so it may still be heard by the protest\ncommittee. The judge never enters a discussion on the applicable rules or\ninterpretation of a rule or answers questions regarding any conclusions before\nthe protest is withdrawn.\n\nH.5\n\nThe Procedures\nWhen a protest is delivered to the race office the protestor is asked to stand by\nwhile a judge reviews the protest to determine if the protest is suitable for\narbitration.\nIf the protest is suitable and the protestor is comfortable, the judge may ask the\nprotestor to find the other party and to come to the race office for the arbitration\nmeeting. The hearing should be scheduled and the arbitration meeting is held\nwhen the parties arrive. The scheduling of hearings can anticipate that some\nH.3\n\nprotests will be withdrawn during arbitration prior to a hearing. At large events,\nhave more than one judge ready to arbitrate protests.\nIf one of the parties does not attend, or chooses not to attend, the arbitration\nmeeting does not proceed, and the protest is scheduled for a hearing. The\nprotestee is given a copy of the protest and time to prepare before the arbitration\nmeeting begins.\nHold the arbitration meeting in a quiet location, away from other competitors and\nobservers. Standing, rather than sitting around a table, usually shortens the\nduration of the meeting. Only the parties to the protest give testimony. Witnesses\nare not allowed. Evidence given during the arbitration meeting should not be\noverheard by any potential witnesses if it goes to a hearing. A judge trainee or\njudge assessor may be allowed to observe the meeting if the parties do not object.\nThe rules do not address whether observers are allowed at an arbitration meeting.\nThey are usually discouraged. If they are permitted, e.g., a parent at a youth event,\nthen they must acknowledge that they must only observe. Also, the intent of rule\n63.3 is clear and an observer at an arbitration meeting may not be a witness at a\nsubsequent protest hearing.\nThe judge should have available the notice of race, the sailing instructions and any\namendments to them, a current rule book, boat models and a watch to keep track\nof the time. When a boat accepts a Post-Race Penalty, it may be recorded on a\nform or on the back side of the original protest form and signed by the\nrepresentative. The back side of the protest form also has a tick box for the\nprotestor to request to withdraw the protest.\nThe first step is to confirm that the judge has no conflict of interest.\nThe judge explains to the parties how the arbitration meeting is conducted, that it\nshould take about 15 minutes, and that the parties will be deciding the outcome of\nthe meeting.\nThe next step is to determine if there was any damage or injury as a result of the\nincident. If it is possible that rule 44.1(b) applies, then rules T1(a) and T2 do not\npermit the boat to take a Post-Race Penalty. In that case, the arbitration meeting\nwould not be held, and if it was in progress, it would be closed.\nDuring the arbitration meeting, the judge might find that the protest is not suitable\nfor arbitration. It may involve a rule not suited to arbitration, or the Post-Race\nPenalty is not appropriate. The arbitration meeting is then closed, and the protest,\nif not withdrawn, proceeds to a hearing.\nThe next step is to give an opinion on the validity of the protest. This includes the\npossibility that the protest committee will find the protest is invalid. For example, if\nthe protest form and the protestor’s testimony clearly indicate that the protestor did\nH.4\n\nnot comply with rule 61.1(a), the judge will advise the parties that the protest\ncommittee will likely find the protest invalid. The protestor then may request to\nwithdraw the protest or proceed to the protest committee for a hearing. In either\ncase, the arbitration meeting ends.\nIf the protest is clearly valid or clearly invalid after the protestor’s initial statement,\nthen the judge’s task of giving an opinion on validity is easy. However, it is much\nmore common that the protest is neither clearly valid nor clearly invalid. In such\ncases, consider:\n• The task of determining validity during an arbitration meeting cannot be an\nexhaustive investigation. No witnesses can be called, and it is unlikely that\nextensive questioning will resolve validity.\n• Due process is not at risk because neither party is bound by the opinion of the\njudge who arbitrates.\n• A statement by the protestor that a hail was made, and a flag was displayed,\ncoupled with a statement that the protestee did not hear the hail and did not\nsee the flag, does not mean that either party is not telling the truth.\nThe judge will decide, based on the balance of probabilities, if the protest meets\nthe validity rules. When the judge is in doubt that the protest is suitable for\narbitration, it proceeds to a hearing.\nIf the judge’s opinion is that the protest is valid and if rule 44.1(b) does not apply,\nthen the arbitration meeting proceeds. In this step, the judge takes each party’s\nevidence, in turn, using model boats. The judge asks any necessary questions but\nkeeps tight control of the conversation.\nThe judge will offer one of these opinions as to what the protest committee is likely\nto decide:\n• The protest is invalid.\n• One or both boats broke one or more rules. The judge applies the principles of\nexoneration to a boat that has been compelled by the other boat to break a\nrule.\n• No boat would be penalized for breaking a rule.\nIf the meeting is not closed, Appendix T requires that the judge must give an\nopinion as to what the protest committee would be likely to decide. Stating that,\n‘The situation is too complicated,’ is not an option.\nA good way for the judge to give his opinion is by saying ‘If this goes to a protest\nhearing, the protest committee will likely decide . . .’\nAfter hearing the opinion of the judge, a party to the protest may decide to take a\nPost-Race Penalty at any time prior to the start of hearing.\nA party that has been given the opinion that they are likely to have broken a rule\nwill sometimes consult with their coach or others after the arbitration meeting has\nH.5\n\nended and will often return to take a Post-Race Penalty before the start of a protest\nhearing. Remember that a boat may accept a Post-Race Penalty up to the start of\nthe protest hearing.\nAlso, regardless of whether a Post-Race penalty is taken, a protestor may ask to\nwithdraw the protest and the judge who arbitrated may allow the withdrawal in\naccordance with normal jury policy for allowing the withdrawal.\nOnce the protest is withdrawn, the judge may discuss any aspect of the protested\nincident with the parties, if time allows. If time is limited, arrange to meet the parties\nlater.\nIf the protest is not withdrawn, it must be heard by the protest committee.\nSometimes a protestor may choose not to withdraw the protest, on the\nmisunderstanding that the protestee would be scored DSQ in the protest hearing.\nThe judge should explain that if a boat has taken an applicable penalty, such as\nthe Post-Race Penalty, then rule 64.2(a) applies. Then the boat may not be\npenalized further unless the protest committee finds that the Post-Race Penalty\nwas not applicable, normally because rule 44.1(b), or rule 2 applied.\nIf the protest goes to a hearing, the judge who arbitrated may participate as a\nmember of the hearing panel. If so, he must be careful not to discuss any aspects\nof the arbitration meeting with any members of the protest committee before or\nduring the hearing.\nParties to the hearing may include statements and evidence that were presented\nin the arbitration meeting. Any discrepancies from information presented in the\nprotest hearing may be questioned by parties and the protest committee.\n\nH.6\n\nNo Appeal\nThe opinion of the judge and the decisions of the parties made at the arbitration\nmeeting are irreversible. They are not subject to reopening or appeal. If the protest\nis withdrawn, there is no decision of the protest committee to appeal.\n\nH.6\n\nI On the Water Judging Including Rule 42 and Appendix P\nContents\nI.1 Introduction\nI.2 Monitoring Rules Compliance – General\nI.3 Liaison with Race Committee\nI.4 Equipment Required\nI.5 Appendix P – Special Procedures for Rule 42\nI.6 The Competitor Briefing\nI.7 Rule 42 - Propulsion\nI.8 Deciding Whether to Penalize\nI.9 Rule 42 – Judging Procedures\nI.9.1 Signaling the Penalty\nI.9.2 Recording the Penalty\nI.9.3 Explaining the Penalty to the Competitor\nI.10 Judge Boat Positioning\nI.10.1\nPre-Start\nI.10.2\nStart\nI.10.3\nUpwind\nI.10.4\nReaches\nI.10.5\nRun\nI.10.6\nFinish\nI.1\n\nPage\nI1\nI1\nI2\nI2\nI3\nI3\nI4\nI4\nI6\nI7\nI8\nI9\nI 10\nI 11\nI 12\nI 13\nI 15\nI 16\nI 18\n\nIntroduction\nThis section focuses on judges’ activities when Appendix P is in effect. The first\nsection applies whenever the judges are on the water observing racing. The\nremainder of the section focuses on judging rule 42 when Appendix P applies.\n\nI.2\n\nMonitoring Rules Compliance – General\nThe judges’ presence on the water in easily identified jury boats leads to better\nrules compliance and a better quality of racing. Officiating through proximity, by\nstaying close, leads to competitors being less likely to break the rules. When\njudges are watching them, they could be penalized or protested. The majority of\ncompetitors, who normally respect the rules, feel less pressure to break rule 42 in\norder to keep up with those who are breaking the rules. Competitors are more likely\nto comply with a rule, or take their penalty when they infringe a rule, or to protest,\nif they know the judges may have seen the incident.\n\nI.1"
+  }
+];
+
+var SYSTEM_PROMPT = 'You are an expert sailing judge assistant with comprehensive knowledge of the 2025-2028 Racing Rules of Sailing (RRS), World Sailing Case Book 2025-2028, and Sail Canada Prescriptions 2025-2028.\n\nSAIL CANADA PRESCRIPTIONS: No fee for any Part 5 procedure. Boat found to break rule AND cause damage is at fault (Rule 65.1). Appeals to appeals@sailing.ca. Part 5 prescriptions and Rule 65.1 CANNOT be changed by SIs. Written Sail Canada approval needed for 3-member IJ.\n\nRULES: Only answer from the 2025-2028 RRS and Case Book. Always cite rule numbers (e.g. Rule 61.2(a)) and case numbers (e.g. Case 31). Flag Sail Canada prescriptions when relevant. Be concise.\n\nKEY RULES: Rule 10 port/starboard. Rule 11 windward/leeward. Rule 12 astern/ahead. Rule 13 tacking. Rule 14 avoiding contact both boats. Rule 15 acquiring ROW. Rule 16 changing course. Rule 18 mark-room zone 3 lengths. Rule 21 exoneration. Rule 44 penalty turns. Rule 60.2(a)(1) hail+flag. Rule 60.3(a) written protest. Rule 63.2 parties present. Rule 63.3 witnesses. Rule 64.1 disqualify. Rule 65.1 inform parties. Rule 66 reopening.\n\nDEFINITIONS: Keep Clear, Mark-Room, Overlap, Clear Astern/Ahead, Zone, Proper Course, Tacking, Leeward/Windward, Obstruction.\n\nFORMAT: Direct answer first, cite rule numbers, reference cases, note Sail Canada prescription if applicable. When relevant, also cite the Judges Manual chapter (e.g. Judges Manual F.10).\n\n=== WORLD SAILING JUDGES MANUAL (January 2021) ===\nReference this when answering questions about hearing best practice, evidence, deliberation, conflict of interest, arbitration, and redress.\n\n[Chapter D — Best Practice Before & At the Event]\nD Best Practice before and at the Event Contents Before the Event D.1. Pre-event Responsibilities of the Chairman D.2 Communication with the Chairman and Vice-Chairman D.3 Deciding on the Extent of the Responsibilities of the International Jury D.4 Reviewing the Draft Notice of Race and Sailing Instructions D.5 Allocating Tasks to Protest Committee Members Page D1 D2 D2 D2 D3 At the Event D 6 Arrival D6 D 7 World Sailing Jury Policy D6 D.8 The First Meeting of the Protest Committee D7 D.9 Pre-Race Meeting with Race Committee Chairman, Principal Race Officer and other Officials D8 D.10 Brie\n\n[Chapter E — Protest Committee Administration]\nE Protest Committee Administration at the Event Contents E.1 The Duties of the Jury Secretary E.2 General Daily Administration E.3 Receiving Hearing Request Forms E.4 Recording and Copying the Request E.5 Arbitration System E.6 Accepting a Penalty in an Incident E.7 Withdrawing Protests E.8 Scheduling Hearings E.9 The Hearing E.10 After the Last Race E.1 Page E1 E2 E2 E2 E3 E3 E4 E4 E5 E6 The Duties of the Jury Secretary At many events, a secretary is appointed to manage the administrative tasks of the protest committee. This person could be a local judge who is in training; but need not b\n\n[Chapter F.1–F.8 — General Principles & Preparation]\nBefore the hearing begins, check whether any panel member has a conflict of interest — personal, financial, or past association with a party. If so, that member should stand down. The committee should be polite but always in control. Identify members by name tags. All evidence must be taken in the presence of the parties.\n\n[Chapter F.9 — Protest Validity & Requirements]\nA protest is invalid if: no hail of \'Protest\'; no red flag (when required); not in writing; not delivered in time; protestor or protestee not identified. The PC must hold a validity hearing if validity is in question. For hull length >6m a flag is required. Exceptions to the flag requirement: not in hailing distance; error in sailing course; occurred ashore.\n\n[Chapter F.10 — Taking Evidence]\nTake evidence from each party in the presence of the other. Witnesses are heard in the presence of parties. Exclude witnesses until called. Video and GPS evidence may be accepted. Leading questions should be avoided — ask open questions first. Hearsay is acceptable but given less weight. Photographic evidence must be authenticated.\n\n[Chapter F.11–F.15 — Finding Facts, Deliberation & Decision]\nAfter evidence: excuse all parties. Panel deliberates privately. Find the facts based solely on evidence heard. If evidence conflicts, decide which to accept and why. Draw a diagram. Apply the definitions carefully. The standard of proof is the balance of probabilities.\n\n[Chapter F.20 — Requests to Reopen]\nA hearing may be reopened if: significant new evidence has emerged that was not available at the original hearing; or if there was a significant error of procedure. The party requesting reopening must show good reason. A request to reopen is not a second hearing on the same facts.\n\n[Chapter F.22 — Redress Hearings]\nRedress: a boat may request if her score was made significantly worse through no fault of her own, by an improper action or omission of the RC, PC, or OA; or by physical damage or giving help caused by another boat breaking a rule. The standard for redress is that the circumstances were beyond the boat\'s control.\n\n[Chapter H — Arbitration (Appendix T)]\nArbitration (Appendix T): used to resolve protests quickly without a full hearing. An arbitrator (not a party to the hearing) hears both sides informally. If the protestee accepts a penalty (usually one place), the protest is dropped. If no agreement, a full hearing proceeds. The arbitrator cannot be on the protest committee for that hearing.\n';
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderPage(){
+  var pc = document.getElementById('pageContent');
+  var hb = document.getElementById('hearingBadge');
+  hb.style.display = hearingStarted ? 'block' : 'none';
+  if(activeTab==='home') pc.innerHTML = renderHome();
+  else if(activeTab==='wizard') pc.innerHTML = renderWizard();
+  else if(activeTab==='assistant') pc.innerHTML = renderAssistant();
+  else if(activeTab==='rules') pc.innerHTML = renderRules();
+  else if(activeTab==='canada') pc.innerHTML = renderCanada();
+  else if(activeTab==='manual') pc.innerHTML = renderManual();
+  else if(activeTab==='log') pc.innerHTML = renderLog();
+  else if(activeTab==='decision') pc.innerHTML = renderDecision();
+  bindEvents();
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  return '<div class="page">'+
+  '<div style="text-align:center;padding:36px 0 24px">'+
+    '<div style="font-size:42px;font-weight:700;color:#e2d9c8;line-height:1.05;margin-bottom:10px">Judge with <em style="color:#b8841e;font-style:italic">Confidence</em></div>'+
+    '<div style="font-size:17px;font-style:italic;color:#7a96b4;margin-bottom:20px">Procedural guidance · Rule application · Casebook reference</div>'+
+    '<div style="display:inline-flex;align-items:center;gap:10px;background:rgba(184,132,30,.08);border:1px solid rgba(184,132,30,.3);border-radius:8px;padding:10px 20px;font-size:13px;color:#b8841e">📜 2025–2028 RRS · World Sailing Case Book · Sail Canada Prescriptions</div>'+
+  '</div>'+
+
+  '<div class="wia">'+
+    '<div class="wia-hdr"><span style="font-size:24px">📋</span><div><div style="font-size:20px;font-weight:700;color:#e2d9c8">What\'s in the App</div><div style="font-size:13px;color:#7a96b4;margin-top:2px">Sailing Judge Assistant · Created by John Golding · Version 1.0 (2025)</div></div></div>'+
+    '<div class="wia-body">'+
+
+      '<div class="free-badge">✓ FREE — NO API KEY NEEDED</div>'+
+      '<div class="mini-grid">'+
+        '<div class="mini-card" onclick="goTab(\'wizard\')"><div style="font-size:24px;margin-bottom:8px">⚖️</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Hearing Wizard</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">10-step procedural guide with checklists, rule citations and warnings. From protest receipt to informing the parties.</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'rules\')"><div style="font-size:24px;margin-bottom:8px">📖</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Rules Reference</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">23 key rule cards across Parts 2–5. Tap any card to pre-fill an AI question (API key needed for the AI answer).</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'canada\')"><div style="font-size:24px;margin-bottom:8px">🍁</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Sail Canada Prescriptions</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Complete 2025–2028 prescriptions with mandatory/optional flags. Fees, liability, appeals, and what SIs can and cannot change.</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'log\')"><div style="font-size:24px;margin-bottom:8px">🗂️</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Hearing Log</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Save a record for every hearing: parties, incident, outcome, facts and rules. Pre-fills the Decision Form automatically.</div></div>'+
+        '<div class="mini-card" onclick="goTab(\'decision\')"><div style="font-size:24px;margin-bottom:8px">🖨️</div><div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Decision Form</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Fill in and print an official formatted decision. Findings of fact, rules applied, outcome, penalties, right-to-appeal notice, signature lines.</div></div>'+
+      '</div>'+
+
+      '<div class="divider"></div>'+
+
+      '<div class="api-badge">🔑 REQUIRES ANTHROPIC API KEY</div>'+
+      '<div class="ai-card" onclick="goTab(\'assistant\')">'+
+        '<div style="display:flex;gap:14px;align-items:flex-start">'+
+          '<div style="font-size:32px;flex-shrink:0">🤖</div>'+
+          '<div>'+
+            '<div style="font-size:17px;font-weight:700;color:#e2d9c8;margin-bottom:6px">AI Rule &amp; Case Assistant</div>'+
+            '<div style="font-size:14px;color:#c0d0e4;line-height:1.65;margin-bottom:10px">Ask any question in plain English about a rule, incident, or procedure. The AI answers as an expert judge, citing specific rule numbers (e.g. Rule 18.2(a)(1)) and case numbers (e.g. Case 31). It knows all 150 World Sailing cases and all Sail Canada prescriptions.</div>'+
+            '<div style="font-size:13px;color:#7a96b4"><strong style="color:#b8841e">Example questions:</strong> "Was the protest valid if no flag was shown?" · "How does Rule 18 apply at a windward mark?" · "When does exoneration apply under Rule 21?" · "What Casebook cases deal with Rule 16?"</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="divider"></div>'+
+
+      '<div style="font-size:16px;font-weight:700;color:#e2d9c8;margin-bottom:14px">💰 API Key — Cost &amp; Setup</div>'+
+      '<div class="cost-grid">'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">🆓</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Free to Start</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Anthropic gives every new account US$5 free credit — enough for 100–500 queries. No credit card needed to register.</div></div>'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">💵</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Cost Per Question</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Approximately $0.01–$0.05 per question (1–5 cents Canadian). A typical hearing consultation of 5–10 questions costs under $0.25.</div></div>'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">🗓️</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Cost Per Regatta</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">A full weekend with heavy use (50+ queries across all hearings) typically costs $2–5 total. Light use is well under $1.</div></div>'+
+        '<div class="cost-card"><div style="font-size:22px;margin-bottom:8px">🔒</div><div style="font-size:14px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Your Key, Your Control</div><div style="font-size:13px;color:#7a96b4;line-height:1.55">Set a monthly spending cap at console.anthropic.com → Settings → Limits. You will never be charged more than you set.</div></div>'+
+      '</div>'+
+      '<div style="background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:#c0d0e4;line-height:1.7">'+
+        '<strong style="color:#b8841e">How to get an API key:</strong> Go to <a href="https://console.anthropic.com" target="_blank" style="color:#b8841e">console.anthropic.com</a> → sign up free → click <strong>API Keys</strong> in the left menu → click <strong>Create Key</strong> → copy the key (starts with <code style="background:#08111f;padding:1px 6px;border-radius:4px;font-size:12px">sk-ant-</code>) → paste it into the AI Assistant tab when prompted. The app stores it in your browser — you only enter it once per device.'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="share-box">'+
+    '<div style="font-size:28px">🔗</div>'+
+    '<div style="flex:1">'+
+      '<div style="font-size:17px;font-weight:700;color:#e2d9c8;margin-bottom:5px">Share This App</div>'+
+      '<div style="font-size:14px;color:#7a96b4;margin-bottom:10px">Send this link to other judges. Opens in any browser — no download, no installation.</div>'+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'+
+        '<code class="share-url">https://sailing416-ship-it.github.io/sailing-judge/</code>'+
+        '<button class="copy-btn" onclick="copyLink()">Copy Link</button>'+
+      '</div>'+
+    '</div>'+
+  '</div>'+
+
+  '<div class="disc"><div class="disc-t">⚠️ Important Notice</div><div class="disc-b">This tool provides procedural guidance based on the official 2025–2028 Racing Rules of Sailing, World Sailing Case Book, and Sail Canada Prescriptions. It is an aid to trained judges — not a replacement for experience, qualification, or judicial discretion. All decisions remain the responsibility of the protest committee.</div></div>'+
+  '</div>';
+}
+
+function copyLink(){
+  var url='https://sailing416-ship-it.github.io/sailing-judge/';
+  if(navigator.clipboard){navigator.clipboard.writeText(url).then(function(){alert('Link copied!');});}
+  else{alert(url);}
+}
+
+// ── WIZARD ────────────────────────────────────────────────────────────────────
+function renderWizard(){
+  if(!hearingStarted){
+    return '<div class="page"><div class="start-screen">'+
+      '<div style="font-size:64px;margin-bottom:20px">⚖️</div>'+
+      '<div style="font-size:30px;font-weight:700;color:#e2d9c8;margin-bottom:12px">Protest Hearing Wizard</div>'+
+      '<div style="font-size:16px;color:#7a96b4;max-width:400px;margin:0 auto 32px;line-height:1.7">Step-by-step procedural guide through a complete protest hearing — from receipt of protest to informing the parties.</div>'+
+      '<button class="btn btn-gold" style="font-size:17px;padding:14px 36px" onclick="startHearing()">Begin New Hearing →</button>'+
+    '</div></div>';
+  }
+  var s = STEPS[hearingStep];
+  var done = stepDone(s.id, s.items.length);
+  var prog = Math.round((hearingStep/(STEPS.length-1))*100);
+  var totalChk = Object.values(checkedItems).filter(Boolean).length;
+  var dots = STEPS.map(function(st,i){
+    var d = stepDone(st.id,st.items.length)===st.items.length;
+    var cls = 'sdot'+(i===hearingStep?' cur':d?' done':'');
+    return '<div class="'+cls+'" onclick="gotoStep('+i+')" title="'+st.title+'">'+(d?'✓':(i+1))+'</div>';
+  }).join('');
+  var items = s.items.map(function(item,idx){
+    var k=s.id+'-'+idx, on=!!checkedItems[k];
+    return '<div class="cl-item" onclick="toggleCheck(\''+k+'\')">'+
+      '<div class="chk'+(on?' on':'')+'">'+( on?'<span style="color:white;font-size:13px;font-weight:bold">✓</span>':'')+'</div>'+
+      '<div class="cl-txt'+(on?' on':'')+'">'+esc(item)+'</div>'+
+    '</div>';
+  }).join('');
+  var warn = s.warn?'<div class="warn"><span style="font-size:18px;flex-shrink:0">⚠️</span><div class="warn-txt">'+esc(s.warn)+'</div></div>':'';
+  var nextBtn = hearingStep<STEPS.length-1
+    ? '<button class="btn btn-gold" onclick="gotoStep('+(hearingStep+1)+')">Next Step →</button>'
+    : '<button class="btn btn-green" onclick="endHearing()">✓ Complete Hearing</button>';
+
+  return '<div class="page">'+
+    '<div class="prog-wrap">'+
+      '<div class="prog-meta"><span>Step '+(hearingStep+1)+' of '+STEPS.length+'</span><span>'+totalChk+' items checked</span></div>'+
+      '<div class="prog-track"><div class="prog-fill" style="width:'+prog+'%"></div></div>'+
+      '<div class="sdots">'+dots+'</div>'+
+    '</div>'+
+    '<div class="step-card">'+
+      '<div class="step-top"><div class="step-icon">'+s.icon+'</div><div>'+
+        '<div class="step-lbl">Step '+(hearingStep+1)+' of '+STEPS.length+' · '+s.rule+'</div>'+
+        '<div class="step-h">'+esc(s.title)+'</div>'+
+        '<div class="step-sub">'+esc(s.desc)+'</div>'+
+      '</div></div>'+
+      '<div class="step-body">'+items+warn+'</div>'+
+      '<div class="step-foot"><div class="step-cnt">'+done+' / '+s.items.length+' checked</div>'+
+        '<button class="ai-hint" onclick="askAIStep()">Ask AI about this step →</button>'+
+      '</div>'+
+      '<div class="step-nav">'+
+        '<button class="btn btn-ghost" onclick="gotoStep('+(hearingStep-1)+')" '+(hearingStep===0?'disabled':'')+'>← Previous</button>'+
+        nextBtn+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function startHearing(){hearingStarted=true;hearingStep=0;renderNav();renderPage();}
+function endHearing(){hearingStarted=false;hearingStep=0;checkedItems={};renderNav();renderPage();}
+function gotoStep(i){if(i<0||i>=STEPS.length)return;hearingStep=i;renderPage();}
+function toggleCheck(k){checkedItems[k]=!checkedItems[k];renderPage();}
+function stepDone(sid,len){var n=0;for(var i=0;i<len;i++)if(checkedItems[sid+'-'+i])n++;return n;}
+function askAIStep(){
+  var s=STEPS[hearingStep];
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta){ta.value='I am on Step '+(hearingStep+1)+': "'+s.title+'". Please give detailed guidance on this step, citing the specific rules that apply.';}
+  },100);
+}
+
+// ── ASSISTANT ─────────────────────────────────────────────────────────────────
+function renderAssistant(){
+  var msgs = chatMessages.map(function(m){
+    var usr = m.role==='user';
+    return '<div class="msg'+(usr?' usr':'')+'">'+
+      '<div class="av '+(usr?'usr':'ai')+'">'+(usr?'👤':'⚓')+'</div>'+
+      '<div class="bubble '+(usr?'usr':'ai')+'">'+esc(m.content)+'</div>'+
+    '</div>';
+  }).join('');
+  if(chatLoading) msgs+='<div class="msg"><div class="av ai">⚓</div><div class="bubble ai"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div></div>';
+  var qs = chatMessages.length<=1 ? ['Flag not shown — is the protest valid?','Both boats made contact. How does Rule 14 apply?','What does the Casebook say about mark-room?','Protestee failed to appear. Can we proceed?','Explain Rule 18.2 and the zone','What cases relate to Rule 16?','When does exoneration under Rule 21 apply?','What is the procedure for a redress hearing?','What do Sail Canada prescriptions say about appeals?','Can a protest committee charge a fee in Canada?'].map(function(q){return '<div class="qq" onclick="sendQ(\''+esc(q)+'\')">'+esc(q)+'</div>';}).join('') : '';
+
+  return '<div class="page"><div class="chat-wrap">'+
+    '<div class="chat-msgs" id="chatMsgs">'+msgs+'</div>'+
+    (qs?'<div class="quick-qs">'+qs+'</div>':'')+
+    '<div class="chat-input-row">'+
+      '<textarea class="chat-ta" id="chatInput" rows="2" placeholder="Ask about a rule, procedure, or describe an incident... (Enter to send, Shift+Enter for new line)"></textarea>'+
+      '<button class="send-btn" id="sendBtn" onclick="sendChat()" '+(chatLoading?'disabled':'')+'>➤</button>'+
+    '</div>'+
+  '</div></div>';
+}
+
+function bindEvents(){
+  if(activeTab==='assistant'){
+    var ta = document.getElementById('chatInput');
+    if(ta) ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}});
+    scrollChat();
+  }
+  if(activeTab==='rules'){
+    var rs = document.getElementById('rulesSearchInput');
+    if(rs) rs.addEventListener('input',function(){rulesSearch=this.value;renderPage();});
+  }
+}
+
+function scrollChat(){setTimeout(function(){var c=document.getElementById('chatMsgs');if(c)c.scrollTop=c.scrollHeight;},50);}
+
+function sendQ(q){
+  var ta=document.getElementById('chatInput');
+  if(ta)ta.value=q;
+  sendChat();
+}
+
+async function sendChat(){
+  var ta=document.getElementById('chatInput');
+  var text=(ta?ta.value:'').trim();
+  if(!text||chatLoading)return;
+  chatMessages.push({role:'user',content:text});
+  if(ta)ta.value='';
+  chatLoading=true;
+  renderPage();
+  try{
+    var resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':API_KEY,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-calls':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5-20251001',
+        max_tokens:1000,
+        system:SYSTEM_PROMPT,
+        messages:chatMessages.map(function(m){return{role:m.role,content:m.content};})
+      })
+    });
+    var d = await resp.json();
+    if(d.error){
+      var msg = d.error.message||'Unknown error';
+      if(d.error.type==='authentication_error') msg='Invalid API key. Please refresh the page and re-enter your key.';
+      else if(d.error.type==='permission_error') msg='API key does not have permission. Check your Anthropic account at console.anthropic.com.';
+      else if(d.error.type==='rate_limit_error') msg='Rate limit reached. Please wait a moment and try again.';
+      else if(d.error.type==='overloaded_error') msg='Anthropic servers are busy. Please try again in a few seconds.';
+      chatMessages.push({role:'assistant',content:'⚠️ API Error: '+msg});
+    } else {
+      chatMessages.push({role:'assistant',content:(d.content&&d.content[0]&&d.content[0].text)||'Empty response — please try again.'});
+    }
+  }catch(e){
+    var errMsg = '⚠️ Could not reach Anthropic. ';
+    if(e.message&&e.message.includes('Failed to fetch')) errMsg += 'This usually means the browser is blocking the request. Try opening the app from the GitHub Pages URL (https://sailing416-ship-it.github.io/sailing-judge/) instead of a local file — browsers allow API calls from web URLs but sometimes block them from local files.';
+    else errMsg += 'Error: '+(e.message||e);
+    chatMessages.push({role:'assistant',content:errMsg});
+  }
+  chatLoading=false;
+  renderPage();
+}
+
+// ── RULES ─────────────────────────────────────────────────────────────────────
+function renderRules(){
+  var filtered = KEY_RULES.filter(function(r){
+    var q=rulesSearch.toLowerCase();
+    return !q||r.num.toLowerCase().includes(q)||r.name.toLowerCase().includes(q)||r.s.toLowerCase().includes(q);
+  });
+  var parts=['Part 2','Part 3','Part 4','Part 5'];
+  var partNames={'Part 2':'When Boats Meet','Part 3':'Conduct of a Race','Part 4':'Other Requirements','Part 5':'Protests, Redress & Hearings'};
+  var html='<div class="page"><input class="rules-search" id="rulesSearchInput" placeholder="Search rules by number or keyword..." value="'+esc(rulesSearch)+'">';
+  parts.forEach(function(p){
+    var rules=filtered.filter(function(r){return r.part===p;});
+    if(!rules.length)return;
+    html+='<div class="sec-title">'+p+' — '+partNames[p]+'</div><div class="rules-grid">';
+    rules.forEach(function(r){
+      html+='<div class="rc" onclick="askRule(\''+esc(r.num)+'\',\''+esc(r.name)+'\')">'+
+        '<div class="rnum">'+r.num+'</div>'+
+        '<div class="rname">'+r.name+'</div>'+
+        '<div class="rsum">'+esc(r.s)+'</div>'+
+        '<div class="rtap">Tap to get AI guidance + case references →</div>'+
+      '</div>';
+    });
+    html+='</div>';
+  });
+  return html+'</div>';
+}
+
+function askRule(num,name){
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta){ta.value='Explain '+num+' — '+name+' in detail. Cite the exact rule text, relevant definitions, and the most important Casebook cases that illustrate how this rule is applied.';}
+  },100);
+}
+
+// ── SAIL CANADA ───────────────────────────────────────────────────────────────
+function renderCanada(){
+  var cards = SC_ITEMS.map(function(item){
+    var bg=item.hi?'linear-gradient(135deg,#1a2a0a,#0d1e05)':'linear-gradient(135deg,#0d1e35,#0a1828)';
+    var border=item.hi?'rgba(80,140,30,.4)':'#1a3050';
+    var bleft=item.hi?'#5a9e1a':'#b8841e';
+    var rc=item.hi?'#8ece3a':'#b8841e';
+    var note=item.note?'<div class="sc-note">ℹ️ '+esc(item.note)+'</div>':'';
+    return '<div class="sc-card" style="background:'+bg+';border:1px solid '+border+';border-left:4px solid '+bleft+'">'+
+      '<span style="font-size:22px;flex-shrink:0">'+item.icon+'</span>'+
+      '<div style="flex:1"><div class="sc-rule" style="color:'+rc+'">'+esc(item.rule)+'</div>'+
+      '<div class="sc-text">'+esc(item.text)+'</div>'+note+'</div></div>';
+  }).join('');
+  return '<div class="page">'+
+    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap">'+
+      '<div style="font-size:44px">🍁</div>'+
+      '<div><div style="font-size:26px;font-weight:700;color:#e2d9c8">Sail Canada Prescriptions</div>'+
+      '<div style="font-size:12px;color:#b8841e;letter-spacing:.1em;text-transform:uppercase;margin-top:4px">2025–2028 · Applicable to all Canadian events</div></div>'+
+    '</div>'+
+    '<div style="background:rgba(196,30,30,.08);border:1px solid rgba(196,30,30,.25);border-left:4px solid #c43030;border-radius:10px;padding:14px 20px;margin-bottom:20px;font-size:14px;color:#d08080;line-height:1.7">'+
+      '⚠️ <strong>Mandatory at all Canadian events.</strong> Prescriptions to Part 5 and Rule 65.1 cannot be changed or deleted by sailing instructions — even when an international jury is appointed (Rule 88.2).'+
+    '</div>'+
+    cards+
+    '<div style="background:#0a1828;border:1px solid #1a3050;border-radius:12px;padding:20px 24px;margin-top:8px">'+
+      '<div style="font-size:16px;font-weight:700;color:#b8841e;margin-bottom:10px">📬 Sail Canada Appeals Contact</div>'+
+      '<div style="font-size:15px;color:#c0d0e4;line-height:1.8">All appeals and requests:<br><strong style="color:#e2d9c8">appeals@sailing.ca</strong><br><span style="font-size:13px;color:#7a96b4">Provincial decisions may be further appealed to Sail Canada.</span></div>'+
+      '<button class="btn btn-ghost" style="margin-top:14px;font-size:13px" onclick="askCanada()">Ask AI to explain key prescriptions →</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function askCanada(){
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta)ta.value='Explain the Sail Canada prescriptions most important for a protest committee judge, especially those that cannot be changed by sailing instructions.';
+  },100);
+}
+
+// ── LOG ───────────────────────────────────────────────────────────────────────
+function renderLog(){
+  var form='';
+  if(showLogForm){
+    var fields=[['Date','date','date'],['Event','event','text'],['Protest No.','protestNo','text'],['Protestor','protestor','text'],['Protestee','protestee','text'],['Incident Time','incidentTime','text'],['Incident Location','incidentLocation','text'],['Rules Alleged','rulesAlleged','text'],['Panel Chair','chair','text'],['Panel Members','members','text'],['Outcome','outcome','text'],['Penalty','penalty','text']];
+    var finputs=fields.map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><input class="fi" type="'+f[2]+'" id="lf_'+f[1]+'" value="'+esc(logForm[f[1]]||'')+'" onchange="lfSet(\''+f[1]+'\',this.value)"></div>';}).join('');
+    var tareas=[['Findings of Fact','facts'],['Rules Applied','rules'],['Notes','notes']].map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><textarea class="fi" rows="3" id="lf_'+f[1]+'" onchange="lfSet(\''+f[1]+'\',this.value)" style="resize:vertical">'+esc(logForm[f[1]]||'')+'</textarea></div>';}).join('');
+    form='<div style="background:#0d1e35;border:1px solid #b8841e;border-radius:16px;padding:22px;margin-bottom:20px">'+
+      '<div style="font-size:18px;font-weight:700;color:#e2d9c8;margin-bottom:16px">'+(editingLogId?'Edit Record':'New Hearing Record')+'</div>'+
+      '<div class="form-grid">'+finputs+'</div>'+tareas+
+      '<div style="display:flex;gap:12px;margin-top:8px">'+
+        '<button class="btn btn-gold" onclick="saveLog()">💾 Save Record</button>'+
+        '<button class="btn btn-ghost" onclick="cancelLog()">Cancel</button>'+
+      '</div></div>';
+  }
+  var entries = hearingLogs.length===0&&!showLogForm
+    ? '<div style="text-align:center;padding:50px 20px;color:#3a5878;font-style:italic">No hearing records yet. Click "+ New Record" to log your first hearing.</div>'
+    : hearingLogs.map(function(l){
+        var outcomeColor=l.outcome&&(l.outcome.toLowerCase().includes('uphold')||l.outcome.toLowerCase().includes('dsq'))?'#c05030':l.outcome&&l.outcome.toLowerCase().includes('dismiss')?'#4a9e5a':'#e2d9c8';
+        return '<div class="log-entry">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">'+
+            '<div style="flex:1">'+
+              '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:5px">'+
+                (l.protestNo?'<span style="background:rgba(184,132,30,.15);color:#b8841e;font-size:12px;font-weight:700;padding:2px 10px;border-radius:4px">#'+esc(l.protestNo)+'</span>':'')+
+                '<span class="log-vs">'+(l.protestor||'—')+' <span style="color:#7a96b4;font-weight:400">vs</span> '+(l.protestee||'—')+'</span>'+
+              '</div>'+
+              '<div class="log-meta">'+
+                (l.event?'<span>📅 '+esc(l.event)+'</span>':'')+
+                (l.date?'<span>🗓 '+esc(l.date)+'</span>':'')+
+                (l.incidentLocation?'<span>📍 '+esc(l.incidentLocation)+'</span>':'')+
+                (l.rulesAlleged?'<span>📖 '+esc(l.rulesAlleged)+'</span>':'')+
+              '</div>'+
+              (l.outcome?'<div style="margin-top:7px;font-size:14px"><span style="color:#7a96b4">Outcome: </span><span style="color:'+outcomeColor+';font-weight:600">'+esc(l.outcome)+'</span>'+(l.penalty?'<span style="color:#7a96b4"> · Penalty: '+esc(l.penalty)+'</span>':'')+'</div>':'')+
+            '</div>'+
+            '<div class="log-btns">'+
+              '<button class="log-btn" onclick="logToDecision('+l.id+')">🖨 Decision</button>'+
+              '<button class="log-btn" onclick="editLog('+l.id+')">✏️ Edit</button>'+
+              '<button class="log-btn del" onclick="deleteLog('+l.id+')">🗑</button>'+
+            '</div>'+
+          '</div></div>';
+      }).join('');
+
+  return '<div class="page">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">'+
+      '<div style="font-size:24px;font-weight:700;color:#e2d9c8">🗂️ Hearing Log</div>'+
+      '<button class="btn btn-gold" onclick="newLog()">+ New Record</button>'+
+    '</div>'+form+entries+
+    (hearingLogs.length>0?'<div style="margin-top:14px;font-size:12px;color:#3a5878;text-align:center">'+hearingLogs.length+' record'+(hearingLogs.length!==1?'s':'')+' saved this session</div>':'')+
+  '</div>';
+}
+
+function lfSet(f,v){logForm[f]=v;}
+function newLog(){showLogForm=true;editingLogId=null;logForm={date:today(),event:'',protestNo:'',protestor:'',protestee:'',incidentTime:'',incidentLocation:'',rulesAlleged:'',outcome:'',penalty:'',facts:'',rules:'',notes:'',chair:'',members:''};renderPage();}
+function cancelLog(){showLogForm=false;editingLogId=null;renderPage();}
+function saveLog(){
+  var entry=Object.assign({},logForm,{id:editingLogId||Date.now()});
+  // read textarea values directly from DOM before saving
+  ['facts','rules','notes'].forEach(function(f){var el=document.getElementById('lf_'+f);if(el)entry[f]=el.value;});
+  if(editingLogId){hearingLogs=hearingLogs.map(function(l){return l.id===editingLogId?entry:l;});}
+  else{hearingLogs.unshift(entry);}
+  showLogForm=false;editingLogId=null;renderPage();
+}
+function editLog(id){var l=hearingLogs.find(function(x){return x.id===id;});if(!l)return;logForm=Object.assign({},l);editingLogId=id;showLogForm=true;renderPage();}
+function deleteLog(id){if(!confirm('Delete this hearing record?'))return;hearingLogs=hearingLogs.filter(function(l){return l.id!==id;});renderPage();}
+function logToDecision(id){
+  var l=hearingLogs.find(function(x){return x.id===id;});if(!l)return;
+  decForm={date:l.date||today(),event:l.event||'',protestNo:l.protestNo||'',protestor:l.protestor||'',protestee:l.protestee||'',incidentTime:l.incidentTime||'',incidentLocation:l.incidentLocation||'',rulesAlleged:l.rulesAlleged||'',hearingDate:l.date||today(),parties:'',validity:'valid',facts:l.facts||'',rules:l.rules||'',cases:'',exoneration:'',decision:l.outcome&&l.outcome.toLowerCase().includes('dismiss')?'dismissed':'upheld',penalty:l.penalty||'',notes:l.notes||'',chair:l.chair||'',members:l.members||'',appeal:true};
+  activeTab='decision';renderNav();renderPage();
+}
+
+// ── DECISION ──────────────────────────────────────────────────────────────────
+function renderDecision(){
+  var fields=[['Event','event','text'],['Protest No.','protestNo','text'],['Date of Incident','date','date'],['Hearing Date','hearingDate','date'],['Protestor','protestor','text'],['Protestee','protestee','text'],['Incident Time','incidentTime','text'],['Incident Location','incidentLocation','text'],['Rules Alleged','rulesAlleged','text'],['Panel Chair','chair','text']];
+  var finputs=fields.map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><input class="fi" type="'+f[2]+'" id="df_'+f[1]+'" value="'+esc(decForm[f[1]]||'')+'" onchange="dfSet(\''+f[1]+'\',this.value)"></div>';}).join('');
+  var tareas=[['Panel Members (all names)','members'],['Parties Present','parties'],['Findings of Fact','facts'],['Rules Applied (with reasoning)','rules'],['Casebook Cases Considered','cases'],['Exoneration (if applicable)','exoneration'],['Additional Notes','notes']].map(function(f){return '<div class="fg"><div class="fl">'+f[0]+'</div><textarea class="fi" rows="'+(f[1]==='facts'||f[1]==='rules'?5:3)+'" id="df_'+f[1]+'" onchange="dfSet(\''+f[1]+'\',this.value)" style="resize:vertical">'+esc(decForm[f[1]]||'')+'</textarea></div>';}).join('');
+
+  return '<div class="page">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">'+
+      '<div style="font-size:24px;font-weight:700;color:#e2d9c8">🖨️ Decision Form</div>'+
+      '<button class="btn btn-gold" style="font-size:15px;padding:12px 26px" onclick="printDecision()">🖨️ Print / Save PDF</button>'+
+    '</div>'+
+    '<div style="background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.25);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:14px;color:#b8841e">Fill in all fields then click Print / Save PDF to generate the official formatted decision document.</div>'+
+    '<div class="form-grid">'+finputs+'</div>'+tareas+
+    '<div class="form-grid" style="margin-bottom:16px">'+
+      '<div class="fg"><div class="fl">Protest Validity</div><select class="fi" id="df_validity" onchange="dfSet(\'validity\',this.value)"><option value="valid"'+(decForm.validity==='valid'?' selected':'')+'>Valid</option><option value="invalid"'+(decForm.validity==='invalid'?' selected':'')+'>Invalid — Dismissed</option></select></div>'+
+      '<div class="fg"><div class="fl">Decision</div><select class="fi" id="df_decision" onchange="dfSet(\'decision\',this.value)"><option value="upheld"'+(decForm.decision==='upheld'?' selected':'')+'>Protest Upheld</option><option value="dismissed"'+(decForm.decision==='dismissed'?' selected':'')+'>Protest Dismissed</option><option value="redress"'+(decForm.decision==='redress'?' selected':'')+'>Redress Granted</option><option value="redress-denied"'+(decForm.decision==='redress-denied'?' selected':'')+'>Redress Denied</option></select></div>'+
+      '<div class="fg"><div class="fl">Penalty Imposed</div><input class="fi" type="text" id="df_penalty" value="'+esc(decForm.penalty||'')+'" placeholder="e.g. DSQ, 20% scoring penalty" onchange="dfSet(\'penalty\',this.value)"></div>'+
+      '<div class="fg" style="display:flex;align-items:center;gap:10px;padding-top:22px"><input type="checkbox" id="df_appeal" '+(decForm.appeal?'checked':'')+' onchange="dfSet(\'appeal\',this.checked)" style="width:18px;height:18px;accent-color:#b8841e;cursor:pointer"><label for="df_appeal" style="font-size:14px;color:#c0d0e4;cursor:pointer">Include right to appeal notice (Rule 66/70)</label></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px">'+
+      '<button class="btn btn-gold" style="font-size:15px;padding:14px 32px" onclick="printDecision()">🖨️ Print / Save as PDF</button>'+
+      '<button class="btn btn-ghost" onclick="decisionToLog()">💾 Save to Hearing Log</button>'+
+    '</div>'+
+  '</div>';
+}
+
+function dfSet(f,v){
+  // read all current DOM values first
+  ['event','protestNo','date','hearingDate','protestor','protestee','incidentTime','incidentLocation','rulesAlleged','chair','members','parties','facts','rules','cases','exoneration','notes','penalty','validity','decision'].forEach(function(k){
+    var el=document.getElementById('df_'+k);if(el)decForm[k]=el.value;
+  });
+  var ap=document.getElementById('df_appeal');if(ap)decForm.appeal=ap.checked;
+  decForm[f]=v;
+}
+
+function syncDecForm(){
+  ['event','protestNo','date','hearingDate','protestor','protestee','incidentTime','incidentLocation','rulesAlleged','chair','members','parties','facts','rules','cases','exoneration','notes','penalty','validity','decision'].forEach(function(k){
+    var el=document.getElementById('df_'+k);if(el)decForm[k]=el.value;
+  });
+  var ap=document.getElementById('df_appeal');if(ap)decForm.appeal=ap.checked;
+}
+
+function decisionToLog(){
+  syncDecForm();
+  hearingLogs.unshift({id:Date.now(),date:decForm.date,event:decForm.event,protestNo:decForm.protestNo,protestor:decForm.protestor,protestee:decForm.protestee,incidentTime:decForm.incidentTime,incidentLocation:decForm.incidentLocation,rulesAlleged:decForm.rulesAlleged,outcome:decForm.decision==='upheld'?'Upheld':decForm.decision==='dismissed'?'Dismissed':'See notes',penalty:decForm.penalty,facts:decForm.facts,rules:decForm.rules,notes:decForm.notes,chair:decForm.chair,members:decForm.members});
+  activeTab='log';renderNav();renderPage();
+}
+
+function printDecision(){
+  syncDecForm();
+  var d=decForm;
+  var w=window.open('','_blank');
+  w.document.write('<!DOCTYPE html><html><head><title>Decision — '+(d.protestNo||'Draft')+'</title>'+
+  '<style>body{font-family:Georgia,serif;max-width:800px;margin:40px auto;color:#1a1a1a;font-size:13pt;line-height:1.6}'+
+  '.hdr{border-bottom:3px double #333;padding-bottom:16px;margin-bottom:24px}.title{text-align:center;font-size:18pt;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:12px 0}'+
+  '.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #999;margin:20px 0}.cell{padding:8px 12px;border-bottom:1px solid #ddd;border-right:1px solid #ddd}.cell:nth-child(even){border-right:none}'+
+  '.lbl{font-size:9pt;text-transform:uppercase;letter-spacing:.08em;color:#666;display:block;margin-bottom:2px}.val{font-weight:600}'+
+  '.sec{margin:20px 0}.sec-t{font-size:12pt;font-weight:700;text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid #999;padding-bottom:4px;margin-bottom:10px}.body{min-height:60px;white-space:pre-wrap}'+
+  '.outcome{border:2px solid #1a1a1a;padding:14px 20px;margin:20px 0}.out-lbl{font-size:10pt;text-transform:uppercase;letter-spacing:.1em;color:#555}.out-val{font-size:16pt;font-weight:700;margin-top:4px}'+
+  '.sigs{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:50px}.sig{border-top:1px solid #333;padding-top:6px;font-size:10pt;color:#555}'+
+  '.appeal{background:#f5f5f5;border-left:4px solid #999;padding:10px 14px;margin:20px 0;font-size:11pt}'+
+  '.ft{margin-top:40px;padding-top:12px;border-top:1px solid #ccc;font-size:9pt;color:#888;text-align:center}'+
+  '@media print{button{display:none}}</style></head><body>'+
+  '<div class="hdr"><div style="display:flex;justify-content:space-between"><div><div style="font-size:16pt;font-weight:700">⚓ Protest Committee</div><div style="color:#666;font-size:10pt">2025–2028 Racing Rules of Sailing</div></div><div style="text-align:right;font-size:10pt">Protest No: <strong>'+(d.protestNo||'______')+'</strong><br>Date: '+d.date+'</div></div><div class="title">Hearing Decision</div></div>'+
+  '<div class="grid">'+
+  '<div class="cell"><span class="lbl">Event</span><span class="val">'+(d.event||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Hearing Date</span><span class="val">'+(d.hearingDate||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Protestor</span><span class="val">'+(d.protestor||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Protestee</span><span class="val">'+(d.protestee||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Incident Time</span><span class="val">'+(d.incidentTime||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Location</span><span class="val">'+(d.incidentLocation||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Rules Alleged</span><span class="val">'+(d.rulesAlleged||'—')+'</span></div>'+
+  '<div class="cell"><span class="lbl">Validity</span><span class="val">'+(d.validity==='valid'?'Valid':'Invalid — Dismissed')+'</span></div>'+
+  '</div>'+
+  '<div class="sec"><div class="sec-t">Parties Present</div><div class="body">'+(d.parties||'—')+'</div></div>'+
+  '<div class="sec"><div class="sec-t">Findings of Fact</div><div class="body">'+(d.facts||'—')+'</div></div>'+
+  '<div class="sec"><div class="sec-t">Rules Applied</div><div class="body">'+(d.rules||'—')+'</div></div>'+
+  (d.cases?'<div class="sec"><div class="sec-t">Casebook Cases Considered</div><div class="body">'+d.cases+'</div></div>':'')+
+  (d.exoneration?'<div class="sec"><div class="sec-t">Exoneration</div><div class="body">'+d.exoneration+'</div></div>':'')+
+  '<div class="outcome"><div class="out-lbl">Decision</div><div class="out-val">'+(d.decision==='upheld'?'PROTEST UPHELD':d.decision==='dismissed'?'PROTEST DISMISSED':d.decision==='redress'?'REDRESS GRANTED':'REDRESS DENIED')+'</div>'+(d.penalty?'<div style="margin-top:8px"><strong>Penalty:</strong> '+d.penalty+'</div>':'')+'</div>'+
+  (d.notes?'<div class="sec"><div class="sec-t">Additional Notes</div><div class="body">'+d.notes+'</div></div>':'')+
+  (d.appeal?'<div class="appeal">⚖️ <strong>Right to Appeal:</strong> Parties may request reopening under Rule 66, or appeal under Rule 70 and Sail Canada procedures. Appeals: appeals@sailing.ca</div>':'')+
+  '<div class="sigs"><div><div class="sig">Chair of Protest Committee</div><div style="margin-top:4px">'+(d.chair||'______________________________')+'</div></div><div><div class="sig">Panel Members</div><div style="margin-top:4px">'+(d.members||'______________________________')+'</div></div></div>'+
+  '<div class="ft">Sailing Judge Assistant · © 2025 John Golding · All rights reserved<br>RRS © World Sailing Limited 2025 · Sail Canada Prescriptions © Sail Canada 2025 · Guidance only</div>'+
+  '<script>window.onload=function(){window.print();}<\/script></body></html>');
+  w.document.close();
+}
+
+// ── MANUAL ────────────────────────────────────────────────────────────────────
+var activeManualSection = null;
+
+function renderManual(){
+  if(activeManualSection !== null){
+    var s = MANUAL_SECTIONS[activeManualSection];
+    var content = s.content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    // Format content: convert double newlines to paragraphs
+    var paras = content.split('\n\n').map(function(p){
+      p = p.trim();
+      if(!p) return '';
+      // Bold section headings like F.10.1
+      p = p.replace(/(F\.\d+\.?\d*\s+[A-Z][^\n]{3,50})/g, '<strong>$1</strong>');
+      return '<p style="margin-bottom:12px;line-height:1.7;font-size:14px;color:#c0d0e4">'+p+'</p>';
+    }).join('');
+    return '<div class="page">'+
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">'+
+        '<button class="btn btn-ghost" onclick="activeManualSection=null;renderPage()" style="font-size:13px;padding:7px 16px">← All Sections</button>'+
+        '<div style="font-size:13px;color:#b8841e;letter-spacing:.08em;text-transform:uppercase">'+esc(s.ref)+'</div>'+
+      '</div>'+
+      '<div style="background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:16px;overflow:hidden">'+
+        '<div style="background:linear-gradient(135deg,#0f2240,#0d1e35);border-bottom:1px solid #1a3050;padding:20px 26px;display:flex;align-items:center;gap:14px">'+
+          '<span style="font-size:32px">'+s.icon+'</span>'+
+          '<div>'+
+            '<div style="font-size:11px;color:#b8841e;letter-spacing:.15em;text-transform:uppercase;margin-bottom:4px">'+esc(s.ref)+' · World Sailing Judges Manual 2021</div>'+
+            '<div style="font-size:22px;font-weight:700;color:#e2d9c8">'+esc(s.title)+'</div>'+
+          '</div>'+
+        '</div>'+
+        '<div style="padding:22px 26px">'+paras+'</div>'+
+      '</div>'+
+      '<div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">'+
+        '<button class="btn btn-ghost" style="font-size:13px" onclick="askManual('+activeManualSection+')">Ask AI about this section →</button>'+
+        '<button class="btn btn-ghost" onclick="activeManualSection=null;renderPage()" style="font-size:13px">← Back to sections</button>'+
+      '</div>'+
+    '</div>';
+  }
+
+  // Section list view
+  var cards = MANUAL_SECTIONS.map(function(s,i){
+    return '<div style="background:linear-gradient(160deg,#0d1e35,#0a1828);border:1px solid #1a3050;border-radius:12px;padding:18px 20px;cursor:pointer;transition:all .2s;margin-bottom:10px" onclick="openManualSection('+i+')" onmouseover="this.style.borderColor=\'#b8841e\';this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.borderColor=\'#1a3050\';this.style.transform=\'translateY(0)\'">' +
+      '<div style="display:flex;align-items:center;gap:14px">'+
+        '<span style="font-size:28px;flex-shrink:0">'+s.icon+'</span>'+
+        '<div style="flex:1">'+
+          '<div style="font-size:11px;color:#b8841e;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">'+esc(s.ref)+'</div>'+
+          '<div style="font-size:17px;font-weight:700;color:#e2d9c8;margin-bottom:5px">'+esc(s.title)+'</div>'+
+          '<div style="font-size:13px;color:#7a96b4">'+(s.content.replace(/[\n\r]/g,' ').slice(0,120))+'...</div>'+
+        '</div>'+
+        '<span style="font-size:18px;color:#3a5878;flex-shrink:0">→</span>'+
+      '</div></div>';
+  }).join('');
+
+  return '<div class="page">'+
+    '<div style="display:flex;align-items:center;gap:16px;margin-bottom:22px;flex-wrap:wrap">'+
+      '<div style="font-size:44px">📚</div>'+
+      '<div>'+
+        '<div style="font-size:26px;font-weight:700;color:#e2d9c8">World Sailing Judges Manual</div>'+
+        '<div style="font-size:12px;color:#b8841e;letter-spacing:.1em;text-transform:uppercase;margin-top:4px">January 2021 · Hearing Procedure Reference</div>'+
+      '</div>'+
+    '</div>'+
+    '<div style="background:rgba(184,132,30,.06);border:1px solid rgba(184,132,30,.2);border-radius:10px;padding:12px 18px;margin-bottom:20px;font-size:14px;color:#b8841e;line-height:1.6">'+
+      'Tap any section to read the full content. Use the AI Assistant to ask questions about any topic in the manual.'+
+    '</div>'+
+    cards+
+    '<div style="margin-top:16px;background:#0a1828;border:1px solid #1a3050;border-radius:12px;padding:18px 22px">'+
+      '<div style="font-size:15px;font-weight:700;color:#e2d9c8;margin-bottom:8px">🤖 Ask the AI About the Manual</div>'+
+      '<div style="font-size:14px;color:#7a96b4;margin-bottom:12px">The AI Assistant is trained on this manual and can answer questions about any section.</div>'+
+      '<button class="btn btn-ghost" style="font-size:13px" onclick="askManualGeneral()">Ask AI about the Judges Manual →</button>'+
+    '</div>'+
+    '<div style="margin-top:14px;font-size:12px;color:#3a5878;text-align:center">World Sailing Judges Manual © World Sailing Limited, January 2021. Reproduced for judge reference use.</div>'+
+  '</div>';
+}
+
+function openManualSection(i){
+  activeManualSection = i;
+  renderPage();
+  window.scrollTo(0,0);
+}
+
+function askManual(i){
+  var s = MANUAL_SECTIONS[i];
+  activeTab='assistant';
+  activeManualSection=null;
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta) ta.value='Based on the World Sailing Judges Manual '+s.ref+' ('+s.title+'), what is the key guidance a protest committee judge should know? Please explain with practical examples.';
+  },100);
+}
+
+function askManualGeneral(){
+  activeTab='assistant';
+  renderNav();
+  renderPage();
+  setTimeout(function(){
+    var ta=document.querySelector('.chat-ta');
+    if(ta) ta.value='Based on the World Sailing Judges Manual, what are the most important principles for conducting a fair and correct protest hearing?';
+  },100);
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(s){
+  if(!s)return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>
